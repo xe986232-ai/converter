@@ -1,0 +1,71 @@
+/* ===== Panel Effects: semua kartu plugin tampil seragam saat ringkas / diminimize =====
+   Datar, satu warna (var(--card)), tanpa 3D, tanpa gradien / bayangan / huruf timbul. Susunan baris:
+   [on/off ikon power] [judul] [buka / pattern / maximize] [opsi].
+   Dimuat setelah styles.css & flat-ui.css; selektor memakai #fxList supaya menang atas gaya warna lama tiap plugin
+   (MPCS magenta, PRINTER krem, CUTE teal, BPMTUNE emas, AUTOTUNE biru, DERIZ logam), baik di gaya Default maupun Flat. */
+
+/* tombol on/off: ikon power yang sama dengan BYPASS di AUTOTUNE. Putih = nyala, abu redup = mati */
+.fxc__byp{width:28px;height:28px;flex:none;padding:0;margin:0;border:0;border-radius:8px;background:transparent;color:var(--text);display:grid;place-items:center;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:background-color .15s ease,color .15s ease}
+.fxc__byp svg{display:block}
+.fxc__byp:hover{background:rgba(255,255,255,.1)}
+.fxc__byp:active{background:rgba(255,255,255,.16)}
+.fxc__byp:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.fxc.is-off .fxc__byp{color:#6f6f80}
+
+/* kartu: MPCS, PRINTER, CUTE, BPMTUNE, AUTOTUNE, LIVETUNE, MGCHORD, dan DERIZ saat diminimize */
+#fxList :is(.fxc--mpcs,.fxc--printer,.fxc--cute,.fxc--bt,.fxc--at,.fxc--lt,.fxc--mgchord,.fxc--deriz.is-min){
+  padding:6px 6px 6px 8px;border-radius:12px;
+  background-color:var(--card);background-image:none;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);
+  transform:none;transition:background-color .15s ease}
+#fxList :is(.fxc--mpcs,.fxc--printer,.fxc--cute,.fxc--bt,.fxc--at,.fxc--lt,.fxc--mgchord,.fxc--deriz.is-min):hover{
+  background-color:#2b2b36;box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+/* garis tepi gradien + kilau kaca bawaan .fxc dimatikan */
+#fxList :is(.fxc--mpcs,.fxc--printer,.fxc--cute,.fxc--bt,.fxc--at,.fxc--lt,.fxc--mgchord,.fxc--deriz.is-min)::before,
+#fxList :is(.fxc--mpcs,.fxc--printer,.fxc--cute,.fxc--bt,.fxc--at,.fxc--lt,.fxc--mgchord,.fxc--deriz.is-min)::after{display:none}
+
+/* judul: satu jenis huruf, satu warna */
+#fxList :is(.fxc--mpcs,.fxc--printer,.fxc--cute,.fxc--bt,.fxc--at,.fxc--lt,.fxc--mgchord,.fxc--deriz.is-min) .fxc__title{
+  font-family:inherit;font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;line-height:1.2;
+  color:var(--text);-webkit-text-fill-color:var(--text);background:none;filter:none;text-shadow:none}
+
+/* tombol kecil: polos, tanpa bulatan 3D */
+#fxList :is(.fxc--mpcs,.fxc--printer,.fxc--cute,.fxc--bt,.fxc--at,.fxc--lt,.fxc--mgchord,.fxc--deriz.is-min) :is(.fxc__open,.fxc__more,.fxc__pop,.fxc__pat){
+  width:28px;height:28px;border:0;border-radius:8px;background:transparent;color:var(--muted);box-shadow:none;transform:none}
+#fxList :is(.fxc--mpcs,.fxc--printer,.fxc--cute,.fxc--bt,.fxc--at,.fxc--lt,.fxc--mgchord,.fxc--deriz.is-min) :is(.fxc__open,.fxc__more,.fxc__pop,.fxc__pat):hover,
+#fxList :is(.fxc--mpcs,.fxc--printer,.fxc--cute,.fxc--bt,.fxc--at,.fxc--lt,.fxc--mgchord,.fxc--deriz.is-min) :is(.fxc__more,.fxc__pat)[aria-expanded="true"]{
+  background:rgba(255,255,255,.1);color:var(--text);box-shadow:none}
+#fxList :is(.fxc--mpcs,.fxc--printer,.fxc--cute,.fxc--bt,.fxc--at,.fxc--lt,.fxc--mgchord,.fxc--deriz.is-min) :is(.fxc__open,.fxc__more,.fxc__pop,.fxc__pat):active{
+  background:rgba(255,255,255,.16);transform:none;box-shadow:none}
+
+/* mati: judul dan tombol buka diredupkan */
+#fxList :is(.fxc--mpcs,.fxc--printer,.fxc--cute,.fxc--bt,.fxc--at,.fxc--lt,.fxc--mgchord,.fxc--deriz.is-min).is-off :is(.fxc__title,.fxc__open,.fxc__pat){opacity:.45}
+
+@media (prefers-reduced-motion:reduce){.fxc__byp{transition:none}}
+
+/* ===== Tab Effect (Reverb, Equalizer, Filter, De-esser, Delay) + kartu plugin apa pun yang sedang diminimize: gaya yang sama ===== */
+#fxList :is(.fxc[data-kind="effect"],.fxc.is-min){
+  background-color:var(--card);background-image:none;border-radius:12px;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);transform:none;transition:background-color .15s ease}
+#fxList .fxc[data-kind="effect"]:not(.is-min){padding:6px 10px 10px 8px}
+#fxList :is(.fxc[data-kind="effect"],.fxc.is-min).is-min{padding:6px 6px 6px 8px}
+#fxList :is(.fxc[data-kind="effect"],.fxc.is-min):hover{background-color:var(--card);box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+#fxList .fxc.is-min:hover,#fxList .fxc[data-kind="effect"].is-min:hover{background-color:#2b2b36}
+#fxList :is(.fxc[data-kind="effect"],.fxc.is-min)::before,
+#fxList :is(.fxc[data-kind="effect"],.fxc.is-min)::after{display:none}
+#fxList :is(.fxc[data-kind="effect"],.fxc.is-min) .fxc__title{
+  font-family:inherit;font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;line-height:1.2;
+  color:var(--text);-webkit-text-fill-color:var(--text);background:none;filter:none;text-shadow:none}
+#fxList :is(.fxc[data-kind="effect"],.fxc.is-min) :is(.fxc__open,.fxc__more,.fxc__pop,.fxc__pat){
+  width:28px;height:28px;border:0;border-radius:8px;background:transparent;color:var(--muted);box-shadow:none;transform:none}
+#fxList :is(.fxc[data-kind="effect"],.fxc.is-min) :is(.fxc__open,.fxc__more,.fxc__pop,.fxc__pat):hover,
+#fxList :is(.fxc[data-kind="effect"],.fxc.is-min) :is(.fxc__more,.fxc__pat)[aria-expanded="true"]{background:rgba(255,255,255,.1);color:var(--text)}
+#fxList :is(.fxc[data-kind="effect"],.fxc.is-min).is-off :is(.fxc__title,.fxc__open,.fxc__pat){opacity:.45}
+
+/* ===== Tombol on/off identik di semua kartu (panel Plugin, panel Effect, dan jendela DERIZ / EQ / Reverb / Delay) ===== */
+#fxList .fxc .fxc__head,.derizov .fxc .fxc__head{gap:8px}
+#fxList .fxc.has-tabs .fxc__head,.derizov .fxc.has-tabs .fxc__head{gap:8px}
+#fxList .fxc .fxc__byp,.derizov .fxc .fxc__byp{width:28px;height:28px;margin:0;padding:0;border:0;border-radius:8px;background:transparent;box-shadow:none;color:var(--text);opacity:1}
+#fxList .fxc .fxc__byp:hover,.derizov .fxc .fxc__byp:hover{background:rgba(255,255,255,.1)}
+#fxList .fxc.is-off .fxc__byp,.derizov .fxc.is-off .fxc__byp{color:#6f6f80}

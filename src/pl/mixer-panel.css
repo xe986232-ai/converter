@@ -1,0 +1,94 @@
+/* Panel channel mixer: gaya flat sama seperti panel efek (lima warna dasar dari :root), tanpa sudut membulat.
+   Aksen: oranye = aktivator, biru = solo, merah = arm (mengikuti konvensi Ableton). */
+.fx-mixer { --mx-solo: #4DA3E6; --mx-arm: #E5484D; --mx-thumb: 16px; height: 100%; display: flex; min-width: 0; background: var(--row-black); }
+
+.mx-tracks { flex: 1; min-width: 0; display: flex; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: thin; scrollbar-color: var(--rule) transparent; }
+.mx-fixed { flex: none; display: flex; border-left: 2px solid var(--rule); background: var(--row-black); }
+.mx-empty { align-self: center; padding: 0 16px; font-size: 12px; opacity: .55; }
+
+/* satu strip */
+.mx-strip { flex: none; width: 84px; display: flex; flex-direction: column; min-height: 0; border-right: 2px solid var(--rule); background: var(--row-black); padding-bottom: 3px; }
+.mx-strip.master { background: var(--row-white); border-right: 0; }
+.mx-head { flex: none; height: 22px; display: flex; align-items: center; padding: 0 6px; background: var(--c, var(--row-white)); color: var(--ink, var(--light)); font-weight: 600; }
+.mx-strip.master .mx-head { background: var(--light); color: var(--bg-dark); }
+.mx-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* knob pan / send */
+.mx-knobs { flex: none; display: flex; justify-content: space-evenly; padding: 4px 2px 2px; }
+.mx-knob { flex: none; width: 26px; display: flex; flex-direction: column; align-items: center; touch-action: none; user-select: none; -webkit-user-select: none; cursor: ns-resize; outline-offset: 1px; }
+.mx-knob svg { width: 26px; height: 26px; display: block; }
+.mx-knob .k-track { fill: none; stroke: var(--rule); stroke-width: 4; stroke-linecap: butt; }
+.mx-knob .k-val { fill: none; stroke: var(--fx-accent); stroke-width: 4; stroke-linecap: butt; }
+.mx-knob .k-tick { stroke: var(--light); stroke-width: 3; stroke-linecap: butt; }
+.mx-knob.drag .k-val { stroke: var(--light); }
+.mx-knob:focus-visible { outline: 2px solid var(--light); }
+.k-lab { margin-top: 1px; max-width: 34px; font-size: 9px; line-height: 1.1; opacity: .75; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.mx-knob.drag .k-lab { opacity: 1; font-weight: 600; }
+
+/* tombol aktivator / solo / arm */
+.mx-btns { flex: none; min-height: 24px; display: flex; gap: 2px; padding: 2px 4px; }
+.mx-btn { flex: 1; min-width: 0; height: 20px; padding: 0; font-size: 11px; font-weight: 600; line-height: 20px; text-align: center; background: var(--row-white); }
+.mx-btn[aria-pressed="true"] { color: #1D2226; }
+.mx-on[aria-pressed="true"] { background: var(--fx-accent); }
+.mx-solo[aria-pressed="true"] { background: var(--mx-solo); }
+.mx-arm[aria-pressed="true"] { background: var(--mx-arm); }
+.mx-dot { display: block; width: 8px; height: 8px; margin: 0 auto; border-radius: 50%; background: var(--mx-arm); }
+.mx-arm[aria-pressed="true"] .mx-dot { background: #1D2226; }
+.mx-btn:focus-visible { outline: 2px solid var(--light); outline-offset: -2px; }
+
+/* fader + skala dB + meter */
+.mx-fader { flex: 1; min-height: 0; display: flex; gap: 3px; padding: 2px 6px; }
+.mx-scale { flex: none; position: relative; width: 14px; }
+.mx-mark { position: absolute; right: 0; bottom: calc(var(--p) * (100% - var(--mx-thumb)) + var(--mx-thumb) / 2); transform: translateY(50%); font-size: 8px; line-height: 1; opacity: .6; font-variant-numeric: tabular-nums; }
+.mx-slot { flex: none; position: relative; width: 28px; touch-action: none; user-select: none; -webkit-user-select: none; cursor: ns-resize; outline-offset: -2px; }
+.mx-groove { position: absolute; left: 50%; top: calc(var(--mx-thumb) / 2); bottom: calc(var(--mx-thumb) / 2); width: 4px; margin-left: -2px; background: var(--rule); }
+.mx-thumb { position: absolute; left: 0; right: 0; height: var(--mx-thumb); bottom: calc(var(--p, 0) * (100% - var(--mx-thumb))); background: var(--light); }
+.mx-thumb::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px; margin-top: -1px; background: var(--bg-dark); }
+.mx-slot.drag .mx-thumb { box-shadow: 0 0 0 2px var(--fx-accent); }
+.mx-slot:focus-visible { outline: 2px solid var(--light); }
+
+.mx-meter { flex: none; display: flex; gap: 2px; margin: calc(var(--mx-thumb) / 2) 0; }
+.mx-bar { position: relative; width: 5px; background: var(--rule); }
+.mx-fill { position: absolute; inset: 0; clip-path: inset(100% 0 0 0);
+  background: linear-gradient(to top, #3FB950 0, #3FB950 62%, #E3C43A 62%, #E3C43A 85%, #E5484D 85%); }
+
+/* bacaan volume + puncak */
+.mx-reads { flex: none; display: flex; gap: 2px; padding: 0 4px; }
+.mx-rd { flex: 1; min-width: 0; height: 18px; padding: 0; font-size: 10px; line-height: 16px; text-align: center; font-variant-numeric: tabular-nums;
+  background: var(--bg-dark); border: 1px solid var(--rule); color: var(--light); white-space: nowrap; overflow: hidden; }
+.mx-pk:hover { background: var(--bg-dark); }
+.mx-pk.clip { color: var(--mx-arm); font-weight: 600; }
+
+/* strip yang tidak terdengar (nonaktif / kalah oleh solo): kontrol diredupkan, tombol tetap terang supaya bisa dihidupkan lagi */
+.mx-strip.dim .mx-knobs, .mx-strip.dim .mx-fader, .mx-strip.dim .mx-reads { opacity: .4; }
+.mx-strip.dim .mx-head { opacity: .55; }
+
+/* daftar strip (track, lalu channel FX) di dalam area gulir */
+.mx-list { flex: none; display: flex; min-height: 0; }
+.mx-list:empty { display: none; }
+
+/* tombol titik tiga di kepala strip */
+.mx-more { flex: none; width: 18px; height: 18px; margin: 0 -3px 0 2px; padding: 0; font-size: 15px; font-weight: 700; line-height: 18px; text-align: center; background: transparent; color: inherit; }
+.mx-more:hover { background: rgba(0,0,0,.18); }
+.mx-more.routed { box-shadow: inset 0 -3px 0 currentColor; }   /* tanda: output track diarahkan ke channel FX */
+.mx-more:focus-visible { outline: 2px solid var(--light); outline-offset: -2px; }
+
+/* tombol + (tambah channel FX) di sisi kiri strip tetap */
+.mx-add { flex: none; width: 30px; height: auto; padding: 0; font-size: 22px; line-height: 1; background: var(--row-black); border-right: 2px solid var(--rule); }
+.mx-add:hover { background: var(--row-white); }
+.mx-add:focus-visible { outline: 2px solid var(--light); outline-offset: -2px; }
+
+/* menu popup routing */
+.mx-menu { position: fixed; z-index: 40; min-width: 150px; max-width: 240px; background: var(--row-white); border: 2px solid var(--rule); color: var(--light); font-size: 13px; }
+.mx-menu-h { padding: 5px 12px; font-size: 10px; opacity: .6; border-bottom: 1px solid var(--rule); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mx-menu-i { display: block; width: 100%; padding: 10px 12px; text-align: left; background: transparent; position: relative; }
+/* penanda: tujuan routing yang sedang aktif (Master / channel FX) = kartu putih, teks gelap (juga saat di-hover) */
+.mx-menu-i[aria-checked="true"], .mx-menu-i[aria-checked="true"]:hover { background: #fff; color: var(--rule); font-weight: 600; }
+.mx-menu-i:disabled { opacity: .5; cursor: default; }
+.mx-menu-i:disabled:hover { background: transparent; }
+
+/* menu Color (titik tiga track): kotak warna 5 kolom; warna aktif = bingkai putih */
+.mx-menu-sw { display: grid; grid-template-columns: repeat(5, 34px); gap: 6px; padding: 10px; background: var(--bg-dark); }
+.mx-menu .mx-sw { width: 34px; height: 34px; padding: 0; border: 2px solid var(--rule); border-radius: 8px; }
+.mx-menu .mx-sw:hover { border-color: var(--light); }
+.mx-menu .mx-sw[aria-checked="true"], .mx-menu .mx-sw[aria-checked="true"]:hover { border-color: #fff; box-shadow: inset 0 0 0 2px var(--rule); }

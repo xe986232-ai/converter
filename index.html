@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Melvox</title>
+<meta name="theme-color" content="#2A2D34">
+<meta name="description" content="DAW di browser: playlist canvas.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Melvox">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <strong class="brand">Melvox</strong>
+    <span class="spacer"></span>
+    <button id="btn-new">Baru</button>
+    <button id="btn-demo">Demo</button>
+    <button id="btn-audio">+ Audio</button>
+    <input id="file-audio" type="file" accept="audio/*" multiple hidden>
+  </header>
+  <main class="pl-host" id="pl-host"></main>
+</div>
+<script type="module" src="/src/pl/pl-main.ts"></script>
+</body>
+</html>
