@@ -1,0 +1,156 @@
+/* ===== Gaya UI "UtauTheme" (atribut data-uistyle="utau" di <html>) =====
+   Bentuk playlist + pattern (piano roll) meniru OpenUtau Mobile (skema gelap Material You, seed bawaan #66CCFF).
+   File ini dimuat SETELAH styles.css dan flat-ui.css. Aturan pemisah supaya tidak bertabrakan dengan tema lain:
+   1. Semua warna UtauTheme memakai token berawalan --utau-* (didefinisikan di bawah, hanya aktif saat data-uistyle="utau").
+   2. Di file ini TIDAK ADA yang menimpa token Default (--bg, --panel, --card, --line, --text, --muted, --accent, dst) maupun token Flat (--flat-*).
+   3. Semua selector diawali html[data-uistyle="utau"], jadi Default dan Flat tidak tersentuh sama sekali (dan sebaliknya: tidak ada
+      selector Default / Flat yang diubah untuk tema ini).
+   4. Nilai warna HARUS sama dengan UTAU di src/utau-theme.ts (CSS sumber utama; tabel TS cermin untuk canvas piano roll).
+   Cakupan tahap ini: playlist (latar, ruler, baris track, grid, playhead, clip/pattern) dan pattern (piano roll: bar alat + latar;
+   gambar canvas-nya ada di piano-roll.ts cabang isUtau()). Panel lain (mixer, efek, menu) masih memakai tampilan Default. */
+
+/* ---------- 0. Token UtauTheme ---------- */
+html[data-uistyle="utau"]{
+  color-scheme:dark;
+  /* palet mentah (skema gelap OpenUtau Mobile) */
+  --utau-surface:#191C1E;
+  --utau-container-lowest:#0C0F10;
+  --utau-container:#1D2022;
+  --utau-container-high:#282A2C;
+  --utau-container-highest:#323537;
+  --utau-on-surface:#E1E2E5;
+  --utau-on-surface-variant:#C0C7CD;
+  --utau-outline:#8A9297;
+  --utau-outline-variant:#41484D;
+  --utau-primary:#79D1FF;
+  --utau-on-primary:#003549;
+  --utau-primary-container:#004C68;
+  --utau-on-primary-container:#C3E8FF;
+  /* playlist */
+  --utau-pl-bg:var(--utau-surface);                 /* latar area kerja */
+  --utau-pl-lane:var(--utau-container);             /* baris track */
+  --utau-pl-ruler:var(--utau-container);            /* strip ruler */
+  --utau-pl-line:var(--utau-outline-variant);       /* garis bawah ruler */
+  --utau-pl-track-line:var(--utau-primary);         /* pemisah antar track (TrackBackground: primary 1.5px) */
+  --utau-pl-grid-bar:var(--utau-primary);           /* garis bar (Sem.Pen.Grid.Bar: primary 1.5px) */
+  --utau-pl-grid:65,72,77;                          /* outlineVariant dalam R,G,B: garis ketukan & lebih halus */
+  --utau-pl-grid-gain:6;                            /* pengali alpha zoom (--beat-a, --sub-a, ...) */
+  --utau-pl-tick-a:#C0C7CD;                         /* ruler: angka bar (OnSurfaceVariant) */
+  --utau-pl-tick-b:#8A9297;                         /* ruler: tick ketukan */
+  --utau-pl-tick-c:#41484D;                         /* ruler: tick 1/16 */
+  --utau-pl-play:var(--utau-primary);               /* playhead */
+  --utau-pl-focus:var(--utau-primary);              /* baris target saat drop / seret */
+  /* clip (PartsCanvas): 64% warna track saat tidak terpilih, 100% + garis primary 2px saat terpilih */
+  --utau-clip-radius:4px;
+  --utau-clip-idle:64%;
+  /* pattern (piano roll) */
+  --utau-pr-bg:var(--utau-container);               /* WhiteKey.Background */
+  --utau-pr-black:var(--utau-surface);              /* BlackKey.Background */
+  --utau-pr-bar:var(--utau-container);              /* bar alat di atas piano roll */
+  --utau-pr-ctrl:var(--utau-container-high);        /* tombol / grup (tonal) */
+  --utau-pr-ctrl-hover:var(--utau-container-highest);
+  --utau-pr-ctrl-on:var(--utau-primary-container);  /* tombol aktif */
+}
+
+/* ---------- 1. Latar playlist + ruler ---------- */
+html[data-uistyle="utau"] .workspace{background:var(--utau-pl-bg)}
+html[data-uistyle="utau"] .tl-headwrap{background:var(--utau-pl-ruler);border-bottom:1px solid var(--utau-pl-line)}
+
+/* ---------- 2. Baris track + grid ----------
+   Bar = garis primary; ketukan & 1/16 dst = outlineVariant (alpha mengikuti zoom lewat --beat-a / --sub-a / --mid-a / --fine-a seperti tema lain).
+   Pemisah track = garis primary 1.5px, seperti TrackBackground di OpenUtau Mobile. Spesifisitas dinaikkan supaya menang atas "mono" & "jembut". */
+html[data-uistyle="utau"] .lanes .lane{
+  background-color:var(--utau-pl-lane);
+  border-bottom:1.5px solid var(--utau-pl-track-line);
+  background-image:
+    linear-gradient(90deg,var(--utau-pl-grid-bar) 1.5px,transparent 1.5px),
+    linear-gradient(90deg,rgba(var(--utau-pl-grid),calc(var(--beat-a,.07) * var(--utau-pl-grid-gain))) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(var(--utau-pl-grid),calc(var(--sub-a,0) * var(--utau-pl-grid-gain))) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(var(--utau-pl-grid),calc(var(--mid-a,0) * var(--utau-pl-grid-gain))) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(var(--utau-pl-grid),calc(var(--fine-a,0) * var(--utau-pl-grid-gain))) 1px,transparent 1px)}
+html[data-uistyle="utau"] .lanes .lane.alt{background-color:var(--utau-pl-lane)}   /* tanpa selang-seling: OpenUtau Mobile satu warna per baris */
+html[data-uistyle="utau"] .lanes .lane.is-over{box-shadow:inset 0 0 0 2px var(--utau-pl-focus)}
+html[data-uistyle="utau"] .lanes .lane.is-reordering{filter:none;box-shadow:0 0 0 2px var(--track-color,var(--utau-pl-focus))}
+
+/* ---------- 3. Playhead: garis primary 2px + penanda segitiga, tanpa glow ---------- */
+html[data-uistyle="utau"] .playhead{color:var(--utau-pl-play);filter:none}
+html[data-uistyle="utau"] .playhead-body{left:3px;width:2px}
+html[data-uistyle="utau"] .playhead-head{position:absolute;left:-1px;top:9px;width:10px;height:10px}
+html[data-uistyle="utau"] .playhead-head svg{display:none}
+html[data-uistyle="utau"] .playhead-head::after{content:"";display:block;width:10px;height:10px;background:currentColor;clip-path:polygon(0 0,100% 0,50% 100%)}
+
+/* ---------- 4. Clip / pattern di playlist (PartsCanvas) ----------
+   Sudut 4px; badan = warna track 64% (terpilih 100% + garis primary 2px); nama di kiri atas (OnSurface);
+   pratinjau nada / waveform = OnSurfaceVariant; handle resize = kotak primary bersudut 3px dengan dua garis OnPrimary. */
+html[data-uistyle="utau"] .pattern{
+  --utau-clip:var(--pat-color,var(--track-color,var(--utau-primary)));
+  border-radius:var(--utau-clip-radius);
+  top:1px;bottom:2px;                                /* 1px jarak atas & bawah antar track (rect.Y + 1, Height - 2) */
+  background-color:color-mix(in srgb,var(--utau-clip) var(--utau-clip-idle),transparent);
+  background-image:none;box-shadow:none;animation:none;
+  transition:background-color .15s ease}
+html[data-uistyle="utau"] .pattern:hover{filter:none}
+html[data-uistyle="utau"] .pattern.is-selected{background-color:var(--utau-clip)}
+html[data-uistyle="utau"] .pattern__head{height:18px;padding:0 6px;border-radius:var(--utau-clip-radius) var(--utau-clip-radius) 0 0;background:transparent;color:var(--utau-on-surface);font-size:11px;font-weight:500}
+html[data-uistyle="utau"] .pattern__notes{border-radius:0 0 var(--utau-clip-radius) var(--utau-clip-radius)}
+html[data-uistyle="utau"] .pattern__wave,
+html[data-uistyle="utau"] .pattern__auto{border-radius:0 0 var(--utau-clip-radius) var(--utau-clip-radius)}
+html[data-uistyle="utau"] .pattern__notes rect{fill:var(--note-fill,var(--utau-on-surface-variant))}
+html[data-uistyle="utau"] .pattern__wave{color:var(--wave-fill,var(--utau-on-surface-variant))}
+html[data-uistyle="utau"] .pattern__auto-fill{fill:color-mix(in srgb,var(--utau-on-surface-variant) 18%,transparent)}
+html[data-uistyle="utau"] .pattern__auto-line{stroke:var(--utau-on-surface-variant)}
+html[data-uistyle="utau"] .pattern-ghost{top:1px;bottom:2px;border-radius:var(--utau-clip-radius);background:color-mix(in srgb,var(--utau-primary) 14%,transparent)}
+/* seleksi: garis primary 2px */
+html[data-uistyle="utau"] .pattern::after{border:2px solid var(--utau-primary);border-radius:var(--utau-clip-radius)}
+/* handle resize */
+html[data-uistyle="utau"] .pattern__handle::before{
+  width:14px;height:30px;margin-top:-15px;border-radius:3px;box-shadow:none;
+  background:
+    linear-gradient(var(--utau-on-primary),var(--utau-on-primary)) 4px 7px/1.5px 16px no-repeat,
+    linear-gradient(var(--utau-on-primary),var(--utau-on-primary)) 8.5px 7px/1.5px 16px no-repeat,
+    var(--utau-primary)}
+html[data-uistyle="utau"] .pattern.is-selected .pattern__handle:hover::before,
+html[data-uistyle="utau"] .pattern.is-resizing .pattern__handle::before,
+html[data-uistyle="utau"] .pattern.is-selected .pattern__handle:active::before{box-shadow:none;transform:none}
+html[data-uistyle="utau"] .pattern.is-dragging,
+html[data-uistyle="utau"] .pattern.is-jelly{transform:none;filter:none;box-shadow:0 0 0 2px var(--utau-primary)}
+html[data-uistyle="utau"] .lane.is-off .pattern{filter:saturate(.25)}
+
+/* ---------- 5. Pattern editor (piano roll): DOM di sekitar canvas ----------
+   Canvas (latar, grid, tuts, nada, penggaris) digambar di piano-roll.ts; di sini hanya bar alat dan permukaan di belakangnya. */
+html[data-uistyle="utau"] .pr__bar{background:var(--utau-pr-bar);border-bottom:1px solid var(--utau-outline-variant)}
+html[data-uistyle="utau"] .pr__main,
+html[data-uistyle="utau"] .pr__scroll,
+html[data-uistyle="utau"] .pr__vel{background:var(--utau-pr-bg)}
+html[data-uistyle="utau"] .pr__corner{background:var(--utau-container)}
+html[data-uistyle="utau"] .pr__grp{height:40px;border-radius:10px;border:0;background-color:var(--utau-pr-ctrl);color:var(--utau-on-surface);box-shadow:none}
+html[data-uistyle="utau"] .pr__grp::before,
+html[data-uistyle="utau"] .pr__grp::after{display:none}
+html[data-uistyle="utau"] .pr__grp:hover{box-shadow:none;transform:none;background-color:var(--utau-pr-ctrl-hover)}
+html[data-uistyle="utau"] .pr__lbl{color:var(--utau-on-surface-variant)}
+html[data-uistyle="utau"] .pr__btn{border-radius:8px;color:var(--utau-on-surface-variant);width:34px;height:32px}
+html[data-uistyle="utau"] .pr__btn:hover{background:var(--utau-pr-ctrl-hover);color:var(--utau-on-surface)}
+html[data-uistyle="utau"] .pr__btn:active{transform:none;background:var(--utau-outline-variant)}
+html[data-uistyle="utau"] .pr__btn.on{background:var(--utau-pr-ctrl-on);color:var(--utau-on-primary-container);box-shadow:none}
+html[data-uistyle="utau"] .pr__btn:disabled{opacity:.38}
+html[data-uistyle="utau"] .pr__mag{color:var(--utau-on-surface)}
+html[data-uistyle="utau"] .pr__mag:hover{background:var(--utau-pr-ctrl-hover)}
+html[data-uistyle="utau"] .pr__btn:focus-visible{outline:2px solid var(--utau-primary);outline-offset:1px}
+html[data-uistyle="utau"] .pr__back{color:var(--utau-on-surface)}
+html[data-uistyle="utau"] .pr__back:hover{background:var(--utau-pr-ctrl-hover);color:var(--utau-on-surface)}
+html[data-uistyle="utau"] .pr__back:hover svg,
+html[data-uistyle="utau"] .pr__back:active svg{transform:none}
+html[data-uistyle="utau"] .pr__more{border-radius:8px;color:var(--utau-on-surface)}
+html[data-uistyle="utau"] .pr__more[aria-expanded="true"]{background:var(--utau-outline-variant)}
+html[data-uistyle="utau"] .pr__velbtn{border-radius:8px;border:1px solid var(--utau-outline-variant);background:var(--utau-pr-ctrl);color:var(--utau-on-surface)}
+html[data-uistyle="utau"] .pr__velbtn:hover,
+html[data-uistyle="utau"] .pr__velbtn:focus-visible{color:var(--utau-on-surface);border-color:var(--utau-primary);background:var(--utau-pr-ctrl-hover)}
+html[data-uistyle="utau"] .pr-menu .pr__mtoggle[aria-checked="true"] .pr__sw{background:var(--utau-primary);box-shadow:none}
+
+/* ---------- 6. Toolbar pattern (aksi pattern terpilih di playlist) ---------- */
+html[data-uistyle="utau"] .pat-btn{width:auto;min-width:46px;height:40px;padding:0 10px;border:0;border-radius:10px;background:var(--utau-container-high);color:var(--utau-on-surface);box-shadow:none}
+html[data-uistyle="utau"] .pat-btn:hover{transform:none;background:var(--utau-container-highest)}
+html[data-uistyle="utau"] .pat-btn:active{transform:none;background:var(--utau-outline-variant)}
+html[data-uistyle="utau"] .pat-btn.is-on{background:var(--utau-primary-container);color:var(--utau-on-primary-container)}
+html[data-uistyle="utau"] .pat-btn:focus-visible{outline:2px solid var(--utau-primary);outline-offset:1px}
+html[data-uistyle="utau"] :is(.pr-menu,.pr-snapcard){background:var(--utau-container-high);color:var(--utau-on-surface);border:1px solid var(--utau-outline-variant);border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.4)}
