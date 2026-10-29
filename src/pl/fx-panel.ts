@@ -250,8 +250,8 @@ export function mountFxPanel(host: HTMLElement, pitchOpts: PitchPanelOptions, to
   const grpL = el('div', 'fx-grp'), grpR = el('div', 'fx-grp');
   grpL.append(toggle, mixToggle, pitchToggle, modToggle);   // semua tombol panel dalam satu deret di kiri Play
   grpR.classList.add('fx-grp-r');
-  grpR.append(undoBtn, redoBtn, toolsToggle);   // kanan Play: Undo, Redo, Tools
-  bar.append(grpL, mid, grpR);   // Efek, Mixer, Sample, Module | Rewind, Play | Undo, Redo, Tools
+  grpR.append(toolsToggle);   // Play / Rewind / Undo / Redo sekarang ada di bar bawah lama (dock.ts); tombol-tombolnya tidak dipasang di sini
+  bar.append(grpL, grpR);   // Efek, Mixer, Sample, Module | Tools
   root.append(pitch.bar, body, bar);   // garis progres pitch di sisi paling atas panel
   host.appendChild(root);
 

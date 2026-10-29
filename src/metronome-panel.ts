@@ -8,8 +8,8 @@ export interface MetroApi {
   setBpm(bpm: number): void;
   isOn(): boolean;
   setOn(on: boolean): void;
-  isCountIn(): boolean;
-  setCountIn(on: boolean): void;
+  isCountIn?(): boolean;            // opsional: tanpa dua fungsi ini tombol Count-in disembunyikan (playlist canvas belum punya count-in)
+  setCountIn?(on: boolean): void;
 }
 export interface MetroPanel {
   sync(): void;            // segarkan tampilan dari MetroApi
@@ -49,8 +49,9 @@ export function initMetronomePanel(btn: HTMLButtonElement, api: MetroApi): Metro
     if (document.activeElement !== ui.input) ui.input.value = String(bpm);
     ui.toggle.setAttribute('aria-pressed', String(api.isOn()));
     ui.toggle.classList.toggle('is-on', api.isOn());
-    ui.count.setAttribute('aria-pressed', String(api.isCountIn()));
-    ui.count.classList.toggle('is-on', api.isCountIn());
+    const ci = api.isCountIn?.() ?? false;
+    ui.count.setAttribute('aria-pressed', String(ci));
+    ui.count.classList.toggle('is-on', ci);
   }
 
   function close(instant = false): void {
@@ -103,6 +104,7 @@ export function initMetronomePanel(btn: HTMLButtonElement, api: MetroApi): Metro
       dots: [...p.querySelectorAll<HTMLElement>('.metro-dots i')],
     };
     const { ring, input, toggle, count } = ui;
+    if (!api.setCountIn) count.hidden = true;   // tidak ada count-in: tombolnya disembunyikan
 
     // dial: tarik di cincin
     const fromPointer = (e: PointerEvent) => {
@@ -151,7 +153,7 @@ export function initMetronomePanel(btn: HTMLButtonElement, api: MetroApi): Metro
     });
 
     toggle.addEventListener('click', () => { api.setOn(!api.isOn()); sync(); });
-    count.addEventListener('click', () => { api.setCountIn(!api.isCountIn()); sync(); });
+    count.addEventListener('click', () => { api.setCountIn?.(!(api.isCountIn?.() ?? false)); sync(); });
     p.querySelector<HTMLButtonElement>('[data-act="tap"]')!.addEventListener('click', e => {
       const now = performance.now();
       if (taps.length && now - taps[taps.length - 1] > 2000) taps = [];

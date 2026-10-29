@@ -33,6 +33,7 @@ export interface PianoRollCanvasHandle {
   stop(): void;
   togglePlay(): void;          // play / stop (dipakai tombol Play di bilah bawah)
   rewind(): void;              // stop (kalau sedang play) dan kembalikan playhead ke titik tempat Play terakhir dimulai
+  seekBars(d: number): void;   // tombol Maju di bilah bawah: loncat d bar
   isPlaying(): boolean;
   undo(): void; redo(): void; canUndo(): boolean; canRedo(): boolean;   // riwayat note (dipakai tombol Undo / Redo di bilah bawah)
   setBpm(bpm: number): void;   // tempo mengikuti project
@@ -485,6 +486,16 @@ export function mountPianoRoll(host: HTMLElement, opts: PianoRollCanvasOpts = {}
     stopPlay();
     const vb = areaW / pxBeat();
     if (playhead < S.posH || playhead > S.posH + vb) { S.posH = playhead - vb * 0.1; clampView(); }
+    invalidate();
+  }
+  function seekBars(d: number): void {
+    const b = clamp((Math.floor(curBeat() / S.bpb + 1e-6) + d) * S.bpb, 0, S.loopLen);   // dalam loop yang diputar
+    if (playing) { playStartAbs = b; playT0 = ac!.currentTime; schedAbs = b; live.forEach(v => v.stop()); live = []; cancelClicks(); metroNext = Math.ceil(b - 1e-9); }
+    else {
+      playhead = b;
+      const vb = areaW / pxBeat();
+      if (b < S.posH || b > S.posH + vb) { S.posH = b - vb * 0.1; clampView(); }
+    }
     invalidate();
   }
   function seekTo(x: number): void {
@@ -1431,6 +1442,7 @@ export function mountPianoRoll(host: HTMLElement, opts: PianoRollCanvasOpts = {}
     stop(): void { stopPlay(); },
     togglePlay,
     rewind,
+    seekBars,
     isPlaying: () => playing,
     undo: () => { undo(); notify(); }, redo: () => { redo(); notify(); }, canUndo: () => undoS.length > 0, canRedo: () => redoS.length > 0,
     setBpm: applyBpm,

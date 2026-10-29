@@ -70,6 +70,7 @@ export interface PlaylistCanvasHandle {
   applyTrackGradient(top: string, bottom: string): void;   // Playlist Setting: warna track dari atas (warna atas) ke bawah (warna bawah) berurutan, dicampur rata; satu langkah Undo
   togglePlay(): void;          // play / stop playhead (dipakai tombol Play di bilah bawah)
   rewind(): void;              // stop (kalau sedang play) dan kembalikan playhead ke titik tempat Play terakhir dimulai
+  seekBars(d: number): void;   // tombol Maju di bilah bawah: loncat d bar (ke garis bar berikutnya / sebelumnya); saat play, suara ikut pindah
   isPlaying(): boolean;
   undo(): void; redo(): void; canUndo(): boolean; canRedo(): boolean;   // riwayat playlist (dipakai tombol Undo / Redo di bilah bawah)
 }
@@ -702,6 +703,17 @@ export function mountPlaylist(host: HTMLElement, opts: PlaylistCanvasOpts = {}):
     else playhead = b;
     invalidate();
     return b;
+  }
+  // tombol Maju / Mundur di bilah bawah: pindah ke garis bar berikutnya (d > 0) / sebelumnya (d < 0); layar digulung bila titik itu keluar tampilan
+  function seekBars(d: number): void {
+    const b = clamp((Math.floor(curBeat() / S.bpb + 1e-6) + d) * S.bpb, 0, songLen());
+    if (playing) { playStartAbs = b; playT0 = ac!.currentTime; schedAbs = b; live.forEach(v => v.stop()); live = []; cancelClicks(); metroNext = Math.ceil(b - 1e-9); startMidAudio(b); }
+    else {
+      playhead = b;
+      const vb = areaW / pxBeat();
+      if (b < S.posH || b > S.posH + vb) { S.posH = b - (cell * CORNER_CELLS / 2) / pxBeat(); clampView(); syncZoomUI(); }
+    }
+    invalidate();
   }
   // tap penggaris saat play: berhenti (bukan play) dan playhead kembali ke titik awal play; layar digulung bila titik itu di luar tampilan
   function stopAndReturn(): void {
@@ -1905,6 +1917,7 @@ export function mountPlaylist(host: HTMLElement, opts: PlaylistCanvasOpts = {}):
     applyTrackGradient: trackGradient,
     togglePlay,
     rewind: stopAndReturn,
+    seekBars,
     isPlaying: () => playing,
     undo, redo, canUndo: () => undoS.length > 0, canRedo: () => redoS.length > 0
   };

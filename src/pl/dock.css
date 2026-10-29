@@ -1,0 +1,193 @@
+/* Bar bawah LAMA (card transport + tombol M / undo / redo / panah tutup), diambil dari src/styles.css app lama.
+   Variabel dipasang di .transportbar dan .metro-panel saja supaya tidak mengubah tema playlist canvas yang baru. */
+.transportbar, .metro-panel {
+  --bg:#0f0d13; --card:#25252f; --text:#f2f2f6; --muted:#b9b9c9; --accent:#ff5c9e; --accent-soft:rgba(255,92,158,.26);
+  --bevel:inset 0 1px 0 rgba(255,255,255,.07),inset 0 -1px 0 rgba(0,0,0,.25),0 1px 3px rgba(0,0,0,.3);
+  --bevel-hover:inset 0 1px 0 rgba(255,255,255,.11),inset 0 -1px 0 rgba(0,0,0,.25),0 6px 16px rgba(0,0,0,.3);
+  --ease-out:cubic-bezier(.22,1,.36,1); --ease-spring:cubic-bezier(.34,1.56,.64,1); --ease-inout:cubic-bezier(.65,0,.35,1);
+}
+.transportbar { flex: none; font: 13px/1.2 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--text); }
+.transportbar .ico { display: inline-flex; width: 18px; height: 18px; }
+.transportbar .ico svg { width: 100%; height: 100%; fill: currentColor; }
+.transportbar .bare-btn { background: none; border: 0; padding: 0; }
+.transportbar button { border-radius: 0; }
+.dock-host { flex: none; }
+.dock-host[hidden] { display: none; }
+.transportbar{flex:none;display:flex;justify-content:center;padding:8px 12px 10px;background:var(--bg)}
+.tp-dock{position:relative;max-width:100%;border-radius:16px;background-color:var(--card);box-shadow:var(--bevel);padding:8px 14px;
+  transition:transform .3s var(--ease-out),box-shadow .3s ease}
+.tp-dock:hover{transform:translateY(-1px);box-shadow:var(--bevel-hover)}
+.tp-dock::before,.tp-dock::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none}
+.tp-dock::before{padding:1px;z-index:2;
+  background:linear-gradient(135deg,rgba(255,255,255,.17),rgba(255,255,255,.035) 32%,rgba(255,255,255,.01) 62%,rgba(255,255,255,.08));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.tp-dock::after{background:
+    radial-gradient(90% 130% at 0% 0%,rgba(255,255,255,.03),transparent 58%),
+    linear-gradient(180deg,rgba(255,255,255,.012),rgba(255,255,255,0) 55%)}
+.tp{display:flex;align-items:center;gap:8px}
+.tp__btns{display:flex;align-items:center;gap:2px}
+.tp__btn{width:40px;height:40px;flex:none;padding:0;border:0;border-radius:50%;background:none;color:#e3e3ec;display:grid;place-items:center;
+  transition:transform .25s var(--ease-spring),background-color .2s ease,color .2s ease,border-color .2s ease,box-shadow .25s ease;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.tp__btn:hover{background:rgba(255,255,255,.08)}
+.tp__btn:active{transform:scale(.88);transition-duration:.08s}
+.tp__btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tp__btn .ico{width:22px;height:22px}
+.tp__btn .ico svg{display:block}
+.tp .play{width:46px;height:46px;margin-right:4px;background:#f2f2f6;color:#16161d}
+.tp .play:hover{background:#fff}
+.tp .play .ico{width:24px;height:24px}
+@media (max-width:420px){
+  .tp-dock{padding:8px 8px}
+  .tp{gap:4px}
+  .tp__btn{width:36px;height:36px}
+  .tp .play{width:44px;height:44px;margin-right:2px}
+}
+.transportbar{display:block;padding:0;background:transparent}
+.tp-dock{width:100%;border-radius:16px 16px 0 0;padding:8px 12px;display:flex;justify-content:center}
+.tp-dock:hover{transform:none;box-shadow:var(--bevel)}
+.kbd-toggle{position:absolute;top:0;bottom:0;right:12px;margin:auto 0;z-index:3}
+.kbd-toggle svg{display:block;width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;
+  transition:transform .42s var(--ease-spring)}
+.kbd-toggle[aria-expanded="true"] svg{transform:rotate(180deg)}
+.transportbar{position:relative;display:grid;justify-content:stretch;grid-template-rows:1fr;transition:grid-template-rows .32s var(--ease-out)}
+.transportbar.is-collapsed{grid-template-rows:0fr}
+.dock-clip{min-height:0;overflow:hidden}
+.tp-dock{touch-action:none;cursor:ns-resize;user-select:none;-webkit-user-select:none}
+.tp-dock button{cursor:pointer}
+.transportbar.is-collapsed .kbd-toggle{top:auto;bottom:8px;margin:0;z-index:30;background:var(--bg);box-shadow:none}
+@media (prefers-reduced-motion:reduce){
+  .transportbar{transition:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .kbd-toggle svg{transition:none}
+}
+.tp{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;width:100%}
+.tp__side{display:flex;align-items:center;gap:4px;min-width:0}
+.tp__side--l{justify-content:flex-end}
+.tp__side--r{justify-content:flex-start}
+.tp .play{margin:0}
+@media (max-width:420px){
+  .tp{gap:4px}
+  .tp__side{gap:2px}
+}
+.hist-btn{flex:none;width:38px;height:38px;padding:0;border:1px solid rgba(255,255,255,.22);border-radius:50%;background:#2d2d38;color:#e3e3ec;display:grid;place-items:center;
+  font-size:10.5px;font-weight:600;line-height:1;letter-spacing:-.1px;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  transition:transform .25s var(--ease-spring),background-color .2s ease,opacity .25s ease,border-color .2s ease,color .2s ease}
+.hist-btn:hover:not(:disabled){background:#383846;border-color:rgba(255,255,255,.34)}
+.hist-btn:active:not(:disabled){transform:scale(.88);transition-duration:.08s}
+.hist-btn:disabled{opacity:.36;cursor:default}
+.hist-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@keyframes histPop{0%{transform:scale(.7)}55%{transform:scale(1.12)}100%{transform:none}}
+@keyframes histTap{0%{border-color:rgba(255,255,255,.95);transform:scale(.9)}100%{border-color:var(--tb-line,rgba(255,255,255,.34));transform:none}}
+.hist-btn.is-pop{animation:histPop .4s var(--ease-spring)}
+.hist-btn.is-tap{animation:histTap .45s ease-out}
+@media (max-width:420px){
+  .hist-btn{width:36px;height:36px;font-size:10px}
+}
+@media (max-width:340px){
+  .hist-btn{width:34px;height:34px;font-size:9.5px}
+}
+.pitch-btn svg{display:block;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.pitch-btn.is-on{background:var(--accent);border-color:var(--accent);color:#fff}
+.pitch-btn.is-on:hover:not(:disabled){background:#b685ff;border-color:#b685ff}
+.pitch-btn[aria-expanded="true"]{border-color:#fff}
+@keyframes metroBeat{0%{box-shadow:0 0 0 0 rgba(166,108,255,.7)}100%{box-shadow:0 0 0 9px rgba(166,108,255,0)}}
+@keyframes metroIn{0%{opacity:0;transform:scale(.6)}60%{opacity:1}100%{opacity:1;transform:none}}
+.metro-btn{font-size:15px;font-weight:700;letter-spacing:0}
+.more-btn svg{display:block;width:20px;height:20px;fill:currentColor;stroke:none}
+.more-btn[aria-expanded="true"]{border-color:#fff}
+.metro-btn.is-on{background:var(--accent);border-color:var(--accent);color:#fff}
+.metro-btn.is-on:hover:not(:disabled){background:#b685ff;border-color:#b685ff}
+.metro-btn[aria-expanded="true"]{border-color:#fff}
+.metro-btn.is-beat{animation:metroBeat .35s ease-out}
+.metro-panel{position:fixed;z-index:56;width:min(300px,calc(100vw - 16px),calc(100dvh - 90px));aspect-ratio:1;container-type:inline-size;border-radius:50%;
+  background:#22222c;border:1px solid rgba(255,255,255,.1);box-shadow:0 18px 50px rgba(0,0,0,.55);animation:metroIn .38s var(--ease-spring) backwards;user-select:none;-webkit-user-select:none}
+.metro-ring{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:pointer;outline:none;overflow:visible}
+.metro-track,.metro-fill{fill:none;stroke-width:14;stroke-linecap:round}
+.metro-track{stroke:#33333f}
+.metro-fill{stroke:var(--accent)}
+.metro-knob{fill:#fff;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));transition:r .15s ease}
+.metro-ring:hover .metro-knob{r:14.5}
+.metro-ring:focus-visible .metro-knob{stroke:var(--accent);stroke-width:4}
+.metro-dots{position:absolute;left:0;right:0;top:20%;display:flex;justify-content:center;gap:2.7cqw}
+.metro-dots i{width:3.3cqw;height:3.3cqw;border-radius:50%;background:#3a3a48;transition:background-color .08s,transform .08s}
+.metro-dots i.on{background:#fff;transform:scale(1.25)}
+.metro-dots i:first-child.on{background:var(--accent)}
+.metro-bpm{position:absolute;left:50%;top:28%;translate:-50% 0;width:52cqw;height:24cqw;padding:0;border:0;background:none;color:#fff;text-align:center;
+  font:700 21cqw/1 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;outline:none;-moz-appearance:textfield;appearance:textfield;font-variant-numeric:tabular-nums;border-radius:10px}
+.metro-bpm::-webkit-outer-spin-button,.metro-bpm::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.metro-bpm:focus{background:rgba(255,255,255,.07)}
+.metro-unit{position:absolute;left:0;right:0;top:53%;text-align:center;font-size:4cqw;font-weight:600;letter-spacing:.14em;color:var(--muted)}
+.metro-row{position:absolute;left:0;right:0;top:61%;display:flex;align-items:center;justify-content:center;gap:5cqw}
+.metro-step,.metro-toggle{border-radius:50%;border:1px solid rgba(255,255,255,.2);background:#2d2d38;color:#e3e3ec;display:grid;place-items:center;padding:0;touch-action:manipulation;
+  transition:transform .25s var(--ease-spring),background-color .2s ease,border-color .2s ease,color .2s ease}
+.metro-step{width:12.5cqw;height:12.5cqw;font-size:7cqw;font-weight:500;line-height:1}
+.metro-toggle{width:18.5cqw;height:18.5cqw}
+.metro-toggle svg{width:56%;height:56%}
+.metro-step:hover,.metro-toggle:hover,.metro-chip:hover{background:#383846;border-color:rgba(255,255,255,.34)}
+.metro-step:active,.metro-toggle:active,.metro-chip:active{transform:scale(.9);transition-duration:.08s}
+.metro-toggle.is-on{background:var(--accent);border-color:var(--accent);color:#fff}
+.metro-toggle.is-on:hover{background:#b685ff}
+.metro-chips{position:absolute;left:0;right:0;top:84%;display:flex;justify-content:center;gap:2.4cqw}
+.metro-chip{height:8.4cqw;min-width:21cqw;padding:0 3.4cqw;border-radius:99px;border:1px solid rgba(255,255,255,.2);background:#2d2d38;color:#e3e3ec;font-size:3.9cqw;font-weight:600;touch-action:manipulation;
+  transition:transform .25s var(--ease-spring),background-color .2s ease,border-color .2s ease}
+.metro-chip.is-on{background:var(--accent-soft);border-color:var(--accent);color:#fff}
+.metro-chip.is-tap{animation:metroBeat .35s ease-out}
+.metro-step:focus-visible,.metro-toggle:focus-visible,.metro-chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){
+  .metro-panel{animation:none}
+  .metro-knob,.metro-dots i{transition:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .more-toggle svg,.track-menu__check{transition:none!important}
+}
+.transportbar{--tb:30px;--tb-play:36px;--tb-bd:1.5px;--tb-line:rgba(255,255,255,.34);--tb-line-hi:rgba(255,255,255,.8);--tb-gap:6px;--tb-grp:14px}
+.transportbar .tp-dock{padding:3px 10px;border-radius:12px 12px 0 0}
+.transportbar .tp{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;column-gap:var(--tb-grp);width:100%}
+.transportbar .tp__side,.transportbar .tp__mid{display:flex;align-items:center;gap:var(--tb-gap);min-width:0}
+.transportbar .tp__side--l{justify-content:flex-end}
+.transportbar .tp__side--r{justify-content:flex-start}
+.transportbar .tp__mid{justify-content:center}
+.transportbar :is(.hist-btn,.tp__btn){flex:none;width:var(--tb);height:var(--tb);margin:0;padding:0;border-radius:50%;
+  border:var(--tb-bd) solid var(--tb-line);background:transparent;color:#e3e3ec;box-shadow:none;display:grid;place-items:center;
+  font-size:12px;font-weight:700;line-height:1;letter-spacing:0;-webkit-tap-highlight-color:transparent;
+  transition:transform .25s var(--ease-spring),border-color .2s ease,color .2s ease,opacity .25s ease}
+.transportbar :is(.hist-btn,.tp__btn):hover:not(:disabled){background:transparent;border-color:var(--tb-line-hi);color:#fff}
+.transportbar :is(.hist-btn,.tp__btn):active:not(:disabled){transform:scale(.9);transition-duration:.08s}
+.transportbar :is(.hist-btn,.tp__btn):disabled{opacity:.35;cursor:default}
+.transportbar .tp__btn .ico{width:16px;height:16px}
+.transportbar .more-btn svg{display:block;width:16px;height:16px;fill:currentColor;stroke:none}
+.transportbar .hist-ico svg{display:block;width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.transportbar .metro-btn{font-size:13px}
+.transportbar .pitch-btn svg{display:block;width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.transportbar .pitch-btn.is-on{border-color:var(--accent);color:var(--accent);background:transparent}
+.transportbar .pitch-btn.is-on:hover:not(:disabled){border-color:#c9a2ff;color:#c9a2ff;background:transparent}
+.transportbar .play{width:var(--tb-play);height:var(--tb-play);margin:0;border-color:rgba(255,255,255,.9);color:#fff}
+.transportbar .play:hover:not(:disabled){border-color:#fff}
+.transportbar .play .ico{width:18px;height:18px}
+.transportbar :is(.more-btn,.metro-btn,.pitch-btn)[aria-expanded="true"]{border-color:#fff}
+.transportbar #btnPrMenu{display:none}
+.transportbar .metro-btn.is-on{border-color:var(--accent);color:var(--accent);background:transparent}
+.transportbar .metro-btn.is-on:hover:not(:disabled){border-color:#c9a2ff;color:#c9a2ff;background:transparent}
+.transportbar .metro-btn.is-beat{animation:tbBeat .35s ease-out}
+.transportbar .kbd-toggle{right:10px}
+.transportbar .kbd-toggle svg{width:16px;height:16px}
+.transportbar.is-collapsed .kbd-toggle{border-color:var(--tb-line-hi)}
+@media (max-width:360px){
+  .transportbar{--tb:28px;--tb-play:34px;--tb-gap:4px;--tb-grp:10px}
+  .transportbar .kbd-toggle{right:6px}
+}
+@media (prefers-reduced-motion:reduce){
+  .transportbar .metro-btn.is-beat,.transportbar .hist-btn.is-tap{animation:none}
+}
+.transportbar{z-index:530}
+
+
+/* ---- penyesuaian untuk playlist canvas baru ---- */
+/* tombol melayang (#btn-browser kiri; #btn-project + #btn-settings kanan) menempati sudut bawah layar: sisakan lorong di kiri-kanan card */
+.dock-host { padding: 0 72px 0 36px; background: var(--bg-dark); }
+.transportbar .tp-dock { cursor: default; touch-action: manipulation; padding-right: 40px; }   /* card tidak bisa ditarik (keyboard virtual belum ada di bar ini) */
+.transportbar .tp__side--l, .transportbar .tp__side--r { gap: 2px; }
+@media (max-width:420px) { .transportbar { --tb: 26px; --tb-play: 32px; --tb-gap: 4px; } }
+.metro-chip[hidden] { display: none; }

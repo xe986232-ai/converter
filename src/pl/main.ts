@@ -3,6 +3,7 @@ import './style.css';
 import { mountPlaylist, demoState, type PLClip, type PLNote, type PlaylistState, type PlaylistCanvasHandle } from './playlist-canvas';
 import { mountPianoRoll, type PianoRollCanvasHandle } from './piano-roll-canvas';
 import { mountFxPanel, type FxPanelHandle } from './fx-panel';
+import { mountDock, type Dock } from './dock';   // bar bawah LAMA (transport + metronome + undo / redo)
 import { mountBrowser } from './browser-panel';
 import { mountProjectPanel, type ProjectPanelHandle } from './project-panel';
 import { projectStore, newProjectId, type ProjectRec } from './project-store';
@@ -36,10 +37,11 @@ let editingId: number | null = null;
 // riwayat Undo / Redo umum (lihat bagian bawah): dideklarasikan di sini karena onHistory playlist sudah terpanggil saat playlist dipasang
 let lastEdit: 'fx' | 'editor' = 'editor', lastUndone: 'fx' | 'editor' = 'editor', histBusy = false;
 let fxPanel: FxPanelHandle | null = null;
+let dock: Dock | null = null;   // bar bawah lama; dipasang setelah playlist dan panel efek ada
 let projectPanel: ProjectPanelHandle | null = null;   // diisi di bagian "Panel project" di bawah
 
 // tombol Play di bilah bawah: memainkan piano roll kalau editor terbuka, selain itu playlist; tampil sebagai Stop kalau salah satunya berjalan
-function syncPlayBtn(): void { fxPanel?.setPlaying(playlist.isPlaying() || (pianoRoll?.isPlaying() ?? false)); }
+function syncPlayBtn(): void { dock?.setPlaying(playlist.isPlaying() || (pianoRoll?.isPlaying() ?? false)); }
 function togglePlayActive(): void { if (editingId != null && pianoRoll) pianoRoll.togglePlay(); else playlist.togglePlay(); }
 
 // strip mixer mengikuti daftar track playlist (tambah / hapus / ganti nama / warna); ditunda sedikit karena onChange sering terpanggil
@@ -134,7 +136,7 @@ interface Hist { undo(): void; redo(): void; canUndo(): boolean; canRedo(): bool
 const editorHist = (): Hist => (editingId != null && pianoRoll ? pianoRoll : playlist);
 function syncHistory(): void {
   const e = editorHist(), f = fxPanel?.history;
-  fxPanel?.setHistory(e.canUndo() || !!f?.canUndo(), e.canRedo() || !!f?.canRedo());
+  dock?.setHistory(e.canUndo() || !!f?.canUndo(), e.canRedo() || !!f?.canRedo());
 }
 function doUndo(): void {
   const f = fxPanel!.history, e = editorHist(), toFx = f.canUndo() && (lastEdit === 'fx' || !e.canUndo());
@@ -149,8 +151,6 @@ function doRedo(): void {
   try { (toFx ? f : e).redo(); } finally { histBusy = false; }
   syncHistory();
 }
-fxPanel.onUndo(doUndo);
-fxPanel.onRedo(doRedo);
 fxPanel.history.onChange(syncHistory);
 fxPanel.history.onEdit(() => { lastEdit = 'fx'; });
 // Ctrl/Cmd+Z dan Ctrl+Shift+Z / Ctrl+Y: kalau yang dituju panel efek, ditangani di sini; kalau editor, editor menanganinya sendiri seperti sebelumnya
@@ -166,9 +166,7 @@ window.addEventListener('keydown', e => {
   if (redo) doRedo(); else doUndo();
 }, true);
 syncHistory();
-fxPanel.onRewind(() => { if (editingId != null && pianoRoll) pianoRoll.rewind(); else playlist.rewind(); });   // tombol di kiri Play: playhead kembali ke titik Play terakhir
-fxPanel.onPlay(togglePlayActive);   // tombol Play di tengah bilah bawah = play / stop (piano roll kalau terbuka, selain itu playlist)
-syncPlayBtn();
+
 // wiring audio: mixer (fader/pan/send/mute/solo + meter) dan efek track (dan module pattern) disambung ke audio-engine
 fxPanel.onVsynthChange(prepareVsynth);   // sampel dimuat / diganti
 engine.attachMixer(fxPanel.mixer, () => { const st = fxPanel!.getState(); return st.open && st.tab === 'mixer'; });
@@ -228,8 +226,9 @@ const metroBtns = document.querySelectorAll<HTMLButtonElement>('#metro-seg [data
 function syncSettings(): void {   // tampilan BPM mengikuti project (impor / proyek baru / demo); tidak mengganggu saat sedang diketik
   const el = document.getElementById('set-bpm') as HTMLInputElement | null;
   if (el && document.activeElement !== el) el.value = String(playlist.getBpm());
+  dock?.metro.sync();
 }
-function applyBpmInput(v: number): void { playlist.setBpm(v); pianoRoll?.setBpm(playlist.getBpm()); bpmInput.value = String(playlist.getBpm()); }
+function applyBpmInput(v: number): void { playlist.setBpm(v); pianoRoll?.setBpm(playlist.getBpm()); bpmInput.value = String(playlist.getBpm()); dock?.metro.sync(); }
 bpmInput.addEventListener('change', () => applyBpmInput(+bpmInput.value));
 bpmInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); bpmInput.blur(); } });
 $('bpm-dec').onclick = () => applyBpmInput(playlist.getBpm() - 1);
@@ -240,9 +239,27 @@ function applyMetro(on: boolean): void {
   playlist.setMetronome(on);
   pianoRoll?.setMetronome(on);
   metroBtns.forEach(b => b.classList.toggle('on', (b.dataset.metro === '1') === on));
+  dock?.metro.sync();
 }
 metroBtns.forEach(b => { b.onclick = () => applyMetro(b.dataset.metro === '1'); });
 applyMetro(metroOn);
+
+// bar bawah LAMA: Mundur / Putar-Jeda / Maju, Undo / Redo, dan M (metronome + BPM). Menjalankan piano roll kalau editor terbuka, selain itu playlist.
+dock = mountDock($('dock-host'), {
+  onPlay: togglePlayActive,
+  onRewind: () => { if (editingId != null && pianoRoll) pianoRoll.rewind(); else playlist.rewind(); },   // playhead kembali ke titik Play terakhir
+  onSeek: bars => { if (editingId != null && pianoRoll) pianoRoll.seekBars(bars); else playlist.seekBars(bars); },
+  onUndo: doUndo,
+  onRedo: doRedo,
+  metro: {
+    getBpm: () => playlist.getBpm(),
+    setBpm: v => applyBpmInput(v),
+    isOn: () => metroOn,
+    setOn: on => applyMetro(on)
+  }
+});
+syncPlayBtn();
+syncHistory();
 
 /* ---------- Playlist Setting: Random Color Track (acak semua) + Gradient Color (warna atas -> bawah) ---------- */
 const GRAD_KEY = 'daw-starter-gradient-colors';

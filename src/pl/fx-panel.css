@@ -97,8 +97,7 @@
 /* bilah bawah: selalu tampak, jadi pegangan buka/tutup. Tata letak: [Efek Mixer | PLAY | Pitch Module].
    Dua kelompok tombol sama lebar (1fr), jadi Play selalu tepat di tengah lebar playlist (sejajar tombol + di tengah bawah playlist).
    Tombol browser (34px) melayang di kiri bawah: ruangnya disisakan hanya saat panel browser tertutup (kalau terbuka, tombol itu ada di atas panel browser). Tombol pengaturan + project melayang di kanan bawah, di kolom kanan bilah yang kosong. */
-.fx-bar { height: var(--fx-bar-h); overflow-x: auto; overflow-y: hidden; scrollbar-width: none; display: grid; grid-template-columns: minmax(max-content, 1fr) auto 1fr; align-items: center; column-gap: 6px; background: var(--bg-dark); }
-#bw[hidden] + .center .fx-grp:first-child { padding-left: 40px; }
+.fx-bar { height: var(--fx-bar-h); overflow-x: auto; overflow-y: hidden; scrollbar-width: none; display: grid; grid-template-columns: minmax(max-content, 1fr) auto; align-items: center; column-gap: 6px; background: var(--bg-dark); }
 .fx-grp { height: 100%; min-width: 0; display: flex; align-items: center; justify-content: flex-start; gap: 2px; }
 .fx-toggle { height: 100%; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 0 10px; background: none; white-space: nowrap; }
 .fx-toggle-label { overflow: hidden; text-overflow: ellipsis; }
@@ -210,7 +209,7 @@
 .fx-knob .k-label, .fx-knob .k-read { line-height: 1.25; }
 
 /* kanan Play: Undo, Redo (teks) + tab Tools. Ruang kanan disisakan untuk tombol melayang (pengaturan / project); kalau sempit grup ini bisa digeser */
-.fx-grp-r { flex: none; min-width: max-content; overflow-x: auto; scrollbar-width: none; padding-right: 78px; }
+.fx-grp-r { flex: none; min-width: max-content; overflow-x: auto; scrollbar-width: none; padding-right: 6px; }
 .fx-grp-r::-webkit-scrollbar, .fx-bar::-webkit-scrollbar { display: none; }
 .fx-hist { height: 100%; flex: none; padding: 0 8px; background: none; white-space: nowrap; touch-action: manipulation; }
 .fx-hist:hover { background: var(--row-white); }
