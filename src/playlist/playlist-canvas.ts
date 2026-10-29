@@ -116,7 +116,7 @@ const THEMES: Record<ThemeName, Theme> = {
     lat: '#a68cce', latA: [.05, .09, .16], latW: [1, 1, 1], sep: '#272131', clipLine: 'rgba(15,13,19,.85)', shadow: 'rgba(0,0,0,.22)',
     rulerBg: '#19151f', tick: '#6f6385', tickBar: '#9486ad', circle: '#ffffff', circleText: '#0f0d13',
     selBorder: '#ffffff', selBox: 'rgba(255,255,255,.14)', handleBg: '#ffffff', handleFg: '#0f0d13',
-    playhead: '#2dd4bf', playShadow: 'rgba(15,13,19,.5)', playW: 1, abl: true,
+    playhead: '#ffffff', playShadow: 'rgba(15,13,19,.5)', playW: 1, abl: true,
     css: { '--bg-dark': '#0f0d13', '--row-black': '#25252f', '--row-white': '#2f2f3b', '--rule': '#2a2233', '--light': '#f2f2f6' }
   },
 

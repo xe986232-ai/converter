@@ -8,7 +8,7 @@ import '@fontsource/plus-jakarta-sans/latin-600.css';
 import '@fontsource/plus-jakarta-sans/latin-700.css';
 import './no-context-menu';   // tutup menu klik-tahan / klik kanan bawaan browser
 import './no-zoom';   // kunci zoom halaman (pinch, Ctrl + roda, Ctrl + / -)
-import './playlist/boot';   // playlist canvas (menggantikan tampilan timeline lama)
+import { playlist } from './playlist/boot';   // playlist canvas (menggantikan tampilan timeline lama)
 import { openAudioUploadCard, trackAudioFiles } from './audio-upload-card';
 import { initEffectsPanel } from './effects-panel';
 import { initTrackMeters } from './track-meters';
@@ -2380,7 +2380,7 @@ function setBpm(v) {
   if (playing) scheduleClips();                 // tempo baru langsung terdengar, posisi tidak loncat
   undoStack = []; redoStack = []; histCur = histCapture(); histSync();   // lebar clip berubah: riwayat undo dimulai ulang
 }
-btnPlay.addEventListener('click', togglePlay);
+btnPlay.addEventListener('click', () => playlist.togglePlay());   // tombol Play bilah bawah = play / jeda playlist canvas
 initPitchPanel(document.getElementById('btnPitch') as HTMLButtonElement);   // paling kiri: knob Pitch Project (DERIZ + Supersaw, audio clip tidak ikut)
 initTransportMore(document.getElementById('btnMore') as HTMLButtonElement, () => {   // titik tiga di kiri tombol M
   const t = fxRack.lastTouched(), info = t && fxRack.paramInfo(t.track, t.fxId, t.key);   // ada knob yang baru diputar = muncul opsi Automation Clip
@@ -2418,7 +2418,7 @@ document.addEventListener('keydown', e => {
   if (e.key === ' ' || e.code === 'Space') {
     if (e.target.closest && e.target.closest('[role="slider"], input[type="range"]')) return;
     e.preventDefault(); spaceHandled = true;
-    if (!e.repeat) togglePlay();
+    if (!e.repeat) playlist.togglePlay();   // Space = play / jeda playlist canvas
   } else if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !e.ctrlKey && !e.shiftKey && !(e.target.matches && e.target.matches('input[type="range"]'))) {
     e.preventDefault(); e.key === 'ArrowLeft' ? rewind() : seekBy(1);
   }
