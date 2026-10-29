@@ -117,70 +117,8 @@ html[data-uistyle="flat"] .menu-btn .menu-btn__ic{width:26px;height:26px}
 
 <div class="stage">
 <div class="workspace">
-  <!-- Daftar track -->
-  <div class="tracklist alt-on">
-    <!-- Pojok kiri atas (setinggi ruler): menempel di atas saat playlist di-scroll vertikal, seperti ruler -->
-    <div class="tl-corner">
-      <button class="panel-toggle" id="panelToggle" type="button" aria-expanded="true" aria-label="Tutup panel track" title="Tutup panel track"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button>
-      <!-- Titik tiga: dropdown opsi playlist (View -> Automatic Scroll; ikon Lucide "ellipsis", ISC) -->
-      <button class="panel-toggle more-toggle" id="playlistMoreToggle" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Opsi playlist" title="Opsi playlist"><svg class="ico-ln" viewBox="0 0 24 24" stroke-width="2.6" aria-hidden="true"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></button>
-    </div>
-    <section class="headers" aria-label="Daftar Track">
-      <div class="headers-list">
-        <div class="trkcard-wrap" data-track="1">
-          <div class="trkcard trkcard--on trkcard--top">
-            <div class="trkcard__edge"></div>
-            <div class="trkcard-body">
-              <button title="Tampilkan instrumen" class="trkcard__lead bare-btn">
-                <span class="trkcard__inst"><span class="ico"><svg class="ico-ln" viewBox="0 0 24 24" stroke-width="2" aria-hidden="true"><path d="M10 13v4"/><path d="M14 13v4"/><path d="M18 13v4"/><path d="M2 13h20"/><path d="M22 11.5A3.5 3.5 0 0 0 18.5 8a3.52 3.52 0 0 1-3.173-2A7 7 0 0 0 2 9v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2z"/><path d="M6 13v4"/></svg></span></span>
-              </button>
-              <div class="trkcard__rows">
-                <div class="trkcard__head">
-                  <div class="trkcard__title">
-                    <button title="Grand Piano" class="trkcard__title-btn flat-btn"><span id="track-name-1">Grand Piano</span></button>
-                  </div>
-                  <button type="button" role="switch" aria-checked="true" aria-label="Track nyala / mati" title="Track nyala / mati" class="trkcard__power"><svg class="spk spk--on" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.25 9H6.5l3.9-3.3a.6.6 0 0 1 .98.46v11.68a.6.6 0 0 1-.98.46L6.5 15H4.25a.75.75 0 0 1-.75-.75v-4.5A.75.75 0 0 1 4.25 9z"/><path d="M14.5 9.5a3.6 3.6 0 0 1 0 5"/><path d="M17.2 7a7.2 7.2 0 0 1 0 10"/></svg><svg class="spk spk--off" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g mask="url(#spk-gap)"><path d="M4.25 9H6.5l3.9-3.3a.6.6 0 0 1 .98.46v11.68a.6.6 0 0 1-.98.46L6.5 15H4.25a.75.75 0 0 1-.75-.75v-4.5A.75.75 0 0 1 4.25 9z"/><path d="M14.5 9.5a3.6 3.6 0 0 1 0 5"/><path d="M17.2 7a7.2 7.2 0 0 1 0 10"/></g><path d="M4 4l16 16"/></svg></button>
-                  <button title="Opsi track…" aria-haspopup="menu" aria-expanded="false" class="ico-btn trkcard__menu"><span class="ico" style="width:16px;height:16px"><svg class="ico-ln" viewBox="0 0 24 24" stroke-width="2.6" aria-hidden="true"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg></span></button>
-                </div>
-                <div class="trkcard__sub">Stereo</div>
-                <div class="trkcard__ctrl">
-                  <div class="trkcard__ctrl-in">
-                    <div class="trkcard__pan"><div class="knob mini"><div class="knob-inner"><div role="slider" aria-label="Pan" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0.5" aria-valuetext="Pan 0" tabindex="0" class="knob-input"><div class="knobwheel"><svg viewBox="0 0 36 36" aria-hidden="true" class="circular-chart"><path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" stroke-dasharray="75, 100" class="circle-bg" style="transform-origin:18px 18px;transform:rotate(225deg)"></path><path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" stroke-dashoffset="100" stroke-dasharray="100" class="circle accent-on" style="transform:rotate(225deg)"></path><path d="M18 5.142857142857142 a 12.857142857142858 12.857142857142858 0 0 1 0 25.714285714285715 a 12.857142857142858 12.857142857142858 0 0 1 0 -25.714285714285715" fill="var(--background-tinted-press)" stroke="none" class="circle-inner"></path><path d="M18 5.7857142857142865 a 12.214285714285714 12.214285714285714 0 0 1 0 24.428571428571427 a 12.214285714285714 12.214285714285714 0 0 1 0 -24.428571428571427" stroke="var(--background-tinted-base)" fill="none" class="circle-inner-stroke"></path><path d="M 18 7 L 18 14.5" class="knob-pos" style="transform:rotate(0deg)"></path></svg></div></div></div></div></div>
-                    <div class="trkcard__vol"><div class="rng-box"><div class="rng-in"><input type="range" min="0" max="150" value="100" aria-label="Volume, Grand Piano" aria-valuenow="100" aria-valuetext="Vol 100%" aria-valuemin="0" aria-valuemax="150" step="1" style="--slider-progress: 66.6667%; --slider-progress-fraction: 0.6667" aria-disabled="false" class="slider audio-fader-theme rng--thin rng--hit has-prog"></div></div></div>
-                    <button role="switch" aria-checked="false" aria-label="Mode rekam" class="trkcard__arm bare-btn">S</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="trackmeter" aria-hidden="true"><i class="trackmeter__bar"><b></b><s></s></i><i class="trackmeter__bar"><b></b><s></s></i></div>
-            <div role="separator" class="trkcard-sep"></div>
-          </div>
-        </div>
-      </div>
-      <button class="addtrack"><span class="ico" style="width:14px;height:14px"><svg class="ico-ln" viewBox="0 0 24 24" stroke-width="2.6" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg></span><span>Tambahkan track</span></button>
-    </section>
-  </div>
-
-  <!-- Timeline -->
-  <div class="timeline" id="timeline">
-    <div class="tl-headwrap">
-      <div class="rl rl--main" id="ruler">
-        <div class="rl-box"><canvas class="axiscanvas" id="axis" aria-label="Timeline ruler"></canvas></div>
-      </div>
-    </div>
-    <!-- tombol play di penggaris: selalu di posisi playhead (pusatnya tepat di garis playhead, dijepit ke tepi area yang terlihat), ketuk = play, geser = pindahkan playhead, tersembunyi saat play (main.ts: placePhBtn).
-         Ada di wrapper sticky sendiri (bukan di dalam .tl-headwrap) supaya di posisi paling kiri setengah lingkarannya boleh menjorok di atas kolom track. -->
-    <div class="ph-wrap">
-      <button type="button" class="ph-play" id="phPlayBtn" aria-label="Putar dari posisi playhead" title="Putar"><svg viewBox="0 0 36 36" aria-hidden="true"><path d="M12.6 9L27 18L12.6 27Z"/></svg></button>
-    </div>
-    <div class="lanes" id="lanes">
-      <div class="lane" data-track="1"></div>
-      <div class="playhead" id="playhead">
-        <div class="playhead-head"><svg width="9" height="20" viewBox="0 0 9 20"><path d="M2 11A2.5 2.5 0 0 1 7 11V15.5L4.5 19.5L2 15.5Z" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/></svg></div>
-        <div class="playhead-body"></div>
-      </div>
-    </div>
-  </div>
+  <!-- Playlist canvas (src/playlist/playlist-canvas.ts) dipasang di sini oleh main.ts -->
+  <div class="plc-host" id="playlistHost"></div>
 </div>
 
 <!-- Panel efek: menempel di sisi kanan layar, dibuka / ditutup lewat tab panah di tepi kiri panel (menempel di tepi kanan layar saat tertutup, tinggi layar bagian tengah) -->
