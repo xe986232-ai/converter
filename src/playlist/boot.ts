@@ -6,8 +6,12 @@ import './playlist-host.css';
 const host = document.getElementById('playlistHost') as HTMLElement;
 const ws = document.querySelector('.workspace') as HTMLElement;
 
+// file audio yang di-upload lewat alur Audio clip: id -> File; dibaca playlist canvas lewat getAudioBlob (diputar dan digambar gelombangnya)
+export const audioFiles = new Map<string, Blob>();
+
 export const playlist: PlaylistCanvasHandle = mountPlaylist(host, {
   theme: 'web',
+  getAudioBlob: async id => audioFiles.get(id) ?? null,
   // ikon tombol Play di bilah bawah ikut berubah (Putar / Jeda) saat playlist canvas play / stop
   onTransport: playing => {
     const btn = document.querySelector('.tp .play');

@@ -8,7 +8,7 @@ import '@fontsource/plus-jakarta-sans/latin-600.css';
 import '@fontsource/plus-jakarta-sans/latin-700.css';
 import './no-context-menu';   // tutup menu klik-tahan / klik kanan bawaan browser
 import './no-zoom';   // kunci zoom halaman (pinch, Ctrl + roda, Ctrl + / -)
-import { playlist } from './playlist/boot';   // playlist canvas (menggantikan tampilan timeline lama)
+import { playlist, audioFiles } from './playlist/boot';   // playlist canvas (menggantikan tampilan timeline lama)
 import { openAudioUploadCard, trackAudioFiles } from './audio-upload-card';
 import { initEffectsPanel } from './effects-panel';
 import { initTrackMeters } from './track-meters';
@@ -1769,6 +1769,9 @@ const ICON_AUDIO_CLIP =
 const ICON_AUTO =   // Icon track "Automation": kurva dengan titik kontrol
   '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' +
   '<path d="M3 17c3 0 3-10 6-10s3 10 6 10 3-6 6-6"/><circle cx="9" cy="7" r="1.6" fill="currentColor" stroke="none"/><circle cx="15" cy="17" r="1.6" fill="currentColor" stroke="none"/></svg>';
+// kartu track Audio clip (id kartu) -> id track audio di playlist canvas; fileId unik untuk file yang di-upload
+const plAudioTrack = new Map<string, number>();
+let plFileSeq = 0;
 function addTrack(t) {
   const id = ++trackSeq, cont = TRACK_TPL.cloneNode(true);
   cont.dataset.track = id; cont.dataset.ins = t.n; cont.classList.add('is-new');
@@ -1780,6 +1783,7 @@ function addTrack(t) {
   nm.id = 'track-name-' + id; nm.textContent = name;
   cont.querySelector('.trkcard__title-btn').title = name;
   if (t.n === 'Audio clip') cont.querySelector('.trkcard__inst .ico').innerHTML = ICON_AUDIO_CLIP;
+  if (t.n === 'Audio clip') plAudioTrack.set(String(id), playlist.addTrack('audio', name, t.c));   // track audio yang sama muncul di playlist canvas
   if (t.n === 'Automation') cont.querySelector('.trkcard__inst .ico').innerHTML = ICON_AUTO;   // track khusus Automation Clip (dibuat dari titik tiga di transport)
   cont.querySelector('input[type=range]').setAttribute('aria-label', 'Volume, ' + name);
   const lane = document.createElement('div');
@@ -2439,24 +2443,13 @@ function growTimeline(n) {   // timeline memanjang supaya audio panjang (lagu) m
   if (DEMO) n = Math.min(n, LIMITS.bars);   // DEMO: timeline tidak melebihi batas
   BARS = n; sizeRuler(); paintRuler(true);
 }
-async function importAudio(trackId, file, dropX = null) {   // dropX = clientX tempat clip dilepas (dari MPCS); null = mulai dari bar 1
-  const ctx = audio(), laneSel = '.lane[data-track="' + trackId + '"]';
+async function importAudio(trackId, file, dropX = null) {   // dropX = clientX tempat clip dilepas (dari MPCS); null = mulai dari ketukan 0. Clip masuk ke playlist canvas
   toast('Memuat audio…', 0);
-  let buf;
-  try { buf = await decodeFile(ctx, file); }
-  catch (err) { console.error(err); toast('File audio tidak bisa dibaca / format tidak didukung'); return; }
-  const lane = lanesEl.querySelector(laneSel);
-  if (!lane) { toast('', 1); return; }   // track sudah dihapus selama decode
-  if (DEMO && buf.duration > LIMITS.audioSec) { const n = Math.round(LIMITS.audioSec * buf.sampleRate), nb = new AudioBuffer({length: n, numberOfChannels: buf.numberOfChannels, sampleRate: buf.sampleRate}); for (let c = 0; c < buf.numberOfChannels; c++) nb.copyToChannel(buf.getChannelData(c).slice(0, n), c); buf = nb; }   // DEMO: audio dipotong
-  const durBars = buf.duration / SEC_PER_BAR;
-  const startBar = dropX == null ? 0 : Math.max(0, Math.floor((dropX - lanesEl.getBoundingClientRect().left) / BAR_W));   // dilepas di bar mana (dibulatkan ke bar)
-  if (startBar + durBars > BARS) growTimeline(Math.min(MAX_BARS, Math.ceil(startBar + durBars) + 1));
-  const start = Math.min(startBar * BAR_W, Math.max(0, W - BAR_W / 2));
-  const width = Math.max(BAR_W / 2, Math.min(durBars * BAR_W, W - start));
-  const el = createPattern(lane, {start, width}, {clip: addBuffer(buf), off: 0});
-  el.querySelector('.pattern__title').textContent = file.name.replace(/\.[^.]+$/, '').slice(0, 40) || 'Audio';
-  if (dropX == null) wsEl.scrollTo({left: 0, behavior: 'smooth'});
-  toast(durBars > MAX_BARS ? 'Audio dipotong: timeline maksimum ' + MAX_BARS + ' bar' : 'Audio ditambahkan ke timeline');
+  const fileId = 'f' + (++plFileSeq);
+  audioFiles.set(fileId, file);
+  const ok = await playlist.addClipToTrack(plAudioTrack.get(String(trackId)) ?? null, fileId, file.name.slice(0, 40) || 'Audio', dropX);
+  if (!ok) { audioFiles.delete(fileId); toast('File audio tidak bisa dibaca / format tidak didukung'); return; }
+  toast('Audio ditambahkan ke playlist');
 }
 // hasil olahan MPCS dilepas di timeline: bikin track Audio clip baru, clip-nya diletakkan di bar tempat dilepas
 document.addEventListener('mpcs-audioclip', e => {

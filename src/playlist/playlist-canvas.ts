@@ -62,6 +62,8 @@ export interface PlaylistCanvasHandle {
   setClipVolume(v: number, live?: boolean): void;   // volume clip terpilih 0..1 (1 = level asli); live = dipanggil terus selama knob diseret
   endClipVolume(): void;   // seretan knob volume selesai
   addAudioClip(fileId: string, name: string, clientX: number, clientY: number): Promise<boolean>;   // jatuhkan file audio di posisi layar; false kalau di luar playlist
+  addTrack(kind: PLTrackKind, name?: string, color?: string): number;   // tambah track dari luar (mis. kartu channel); mengembalikan id track
+  addClipToTrack(trackId: number | null, fileId: string, name: string, clientX?: number | null): Promise<boolean>;   // taruh file audio di track itu (null / tidak ada = track audio baru); clientX null = ketukan 0
   resize(): void;
   stop(): void;
   setBpm(bpm: number): void;   // tempo project (40..240); ikut tersimpan di file project
@@ -1134,18 +1136,19 @@ export function mountPlaylist(host: HTMLElement, opts: PlaylistCanvasOpts = {}):
   }
 
   /* ---------- Operasi ---------- */
-  function addTrack(kind: PLTrackKind = 'instrument'): void {
+  function addTrack(kind: PLTrackKind = 'instrument', name?: string, color?: string): number {
     saveUndo();
     const id = nextTrackId++;
     // warna ACAK tiap track baru (termasuk track pertama setelah reload): utamakan warna yang belum dipakai track lain, kalau sudah habis acak dari semua warna
     const used = new Set(S.tracks.map(t => t.color.toUpperCase()));
     const free = TRACK_COLORS.filter(c => !used.has(c));
     const pool = free.length ? free : TRACK_COLORS;
-    const color = pool[Math.floor(Math.random() * pool.length)];
-    S.tracks.push(toTR({ id, name: (kind === 'audio' ? 'Audio ' : 'Instrumen ') + id, color, kind }, S.tracks.length));
+    const col = color || pool[Math.floor(Math.random() * pool.length)];
+    S.tracks.push(toTR({ id, name: name || (kind === 'audio' ? 'Audio ' : 'Instrumen ') + id, color: col, kind }, S.tracks.length));
     S.selTrack = id; hideAdd();
     S.posV = Math.max(S.posV, S.tracks.length + 1.5 - areaH / rowH());
     clampView(); touch();
+    return id;
   }
   function createClip(beat: number, row: number): void {
     const t = S.tracks[row]; if (!t) return;
@@ -1901,6 +1904,21 @@ export function mountPlaylist(host: HTMLElement, opts: PlaylistCanvasOpts = {}):
       saveUndo();
       const len = Math.max(0.25, r6(buf.duration * S.bpm / 60));
       const c: CL = { id: nextClipId++, track: t.id, beat: Math.max(0, align(xToBeat(q.x), 'floor')), len, name: name.replace(/\.[^.]+$/, ''), notes: [], sel: false, muted: false, audio: { id: fileId, dur: buf.duration } };
+      S.clips.push(c);
+      selectOnly(c); touch();
+      return true;
+    },
+    addTrack: (kind: PLTrackKind, name?: string, color?: string): number => addTrack(kind, name, color),
+    async addClipToTrack(trackId: number | null, fileId: string, name: string, clientX?: number | null): Promise<boolean> {
+      await ensureAudio(fileId);
+      const buf = bufs.get(fileId)?.buf;
+      if (!buf) return false;                          // file tidak bisa dibaca / di-decode
+      let t = trackId == null ? undefined : S.tracks.find(x => x.id === trackId);
+      if (!t) { addTrack('audio'); t = S.tracks[S.tracks.length - 1]; }
+      saveUndo();
+      const len = Math.max(0.25, r6(buf.duration * S.bpm / 60));
+      const beat = clientX == null ? 0 : Math.max(0, align(xToBeat(pt({ clientX, clientY: 0 }).x), 'floor'));
+      const c: CL = { id: nextClipId++, track: t.id, beat, len, name: name.replace(/\.[^.]+$/, ''), notes: [], sel: false, muted: false, audio: { id: fileId, dur: buf.duration } };
       S.clips.push(c);
       selectOnly(c); touch();
       return true;
