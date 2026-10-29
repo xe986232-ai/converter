@@ -1,13 +1,13 @@
 /* Panel efek: gaya flat sama seperti playlist (lima warna dasar dari :root), aksen oranye dari warna track default */
-.fx { position: relative; --fx-accent: #F5A12A; --fx-h: clamp(112px, 40vw, 164px); --mx-h: clamp(184px, 54vw, 256px); --fx-bar-h: 34px; display: flex; flex-direction: column; background: var(--bg-dark); border-top: 2px solid var(--rule); }
+.fxp { position: relative; --fx-accent: #F5A12A; --fx-h: clamp(112px, 40vw, 164px); --mx-h: clamp(184px, 54vw, 256px); --fx-bar-h: 34px; display: flex; flex-direction: column; background: var(--bg-dark); border-top: 2px solid var(--rule); }
 
 /* isi panel: tinggi 0 saat tertutup */
 .fx-body { height: 0; overflow: hidden; transition: height .18s ease-out; background: var(--row-black); }
-.fx[data-open="true"] .fx-body { height: var(--fx-h); }
-.fx[data-open="true"][data-tab="mixer"] .fx-body { height: var(--mx-h); }
+.fxp[data-open="true"] .fx-body { height: var(--fx-h); }
+.fxp[data-open="true"][data-tab="mixer"] .fx-body { height: var(--mx-h); }
 /* satu panel tampil sekaligus: efek, mixer, pitch, atau module */
-.fx .fx-body > * { display: none; }   /* spesifisitas cukup tinggi untuk mengalahkan display bawaan tiap panel */
-.fx[data-tab="fx"][data-view="track"] .fx-chain, .fx[data-tab="fx"][data-view="master"] .fx-mfx, .fx[data-tab="fx"][data-view="fxch"] .fx-mfx, .fx[data-tab="fx"] .fx-side, .fx[data-tab="mixer"] .fx-mixer, .fx[data-tab="pitch"] .fx-pitch, .fx[data-tab="module"] .fx-module, .fx[data-tab="tools"] .fx-tools { display: flex; }
+.fxp .fx-body > * { display: none; }   /* spesifisitas cukup tinggi untuk mengalahkan display bawaan tiap panel */
+.fxp[data-tab="fx"][data-view="track"] .fx-chain, .fxp[data-tab="fx"][data-view="master"] .fx-mfx, .fxp[data-tab="fx"][data-view="fxch"] .fx-mfx, .fxp[data-tab="fx"] .fx-side, .fxp[data-tab="mixer"] .fx-mixer, .fxp[data-tab="pitch"] .fx-pitch, .fxp[data-tab="module"] .fx-module, .fxp[data-tab="tools"] .fx-tools { display: flex; }
 .fx-body[inert] { visibility: hidden; transition: height .18s ease-out, visibility 0s .18s; }
 
 /* deretan device ke samping kanan */
@@ -185,15 +185,15 @@
 .ds-box.mixing .ds-slots { display: none; }
 
 /* tab Efek: baris [deretan efek | tombol vertikal Master + Track di tepi kanan]. Master = efek di output master (semua channel), Track = efek pattern terpilih */
-.fx[data-tab="fx"] .fx-body { display: flex; }
-.fx[data-tab="fx"] .fx-chain, .fx[data-tab="fx"] .fx-mfx { flex: 1; min-width: 0; }
+.fxp[data-tab="fx"] .fx-body { display: flex; }
+.fxp[data-tab="fx"] .fx-chain, .fxp[data-tab="fx"] .fx-mfx { flex: 1; min-width: 0; }
 .fx-mfx { --fx-accent: var(--light); --fx-ink: var(--bg-dark); }   /* Master selalu putih (sama seperti header strip Master di Mixer), tidak ikut warna pattern */
 .fx-side { flex: none; width: 30px; flex-direction: column; gap: 2px; background: var(--rule); border-left: 2px solid var(--rule); }
 .fx-side-btn { flex: 1; min-height: 0; padding: 0; border: 0; border-radius: 0; background: var(--row-black); writing-mode: vertical-rl; transform: rotate(180deg); font-weight: 600; font-size: 12px; line-height: 1; letter-spacing: .02em; white-space: nowrap; touch-action: manipulation; }
 .fx-side-btn:hover { background: var(--row-white); }
 .fx-side-btn.on, .fx-side-btn.on:hover { background: var(--fx-accent); color: var(--fx-ink, #1D2226); }
 .fx-side-btn[data-v="master"] { --fx-accent: var(--light); --fx-ink: var(--bg-dark); }
-.fx-side-btn[data-v="fxch"], .fx[data-view="fxch"] .fx-mfx { --fx-accent: #A78BFA; --fx-ink: var(--bg-dark); }   /* warna channel FX sama seperti strip FX di Mixer */
+.fx-side-btn[data-v="fxch"], .fxp[data-view="fxch"] .fx-mfx { --fx-accent: #A78BFA; --fx-ink: var(--bg-dark); }   /* warna channel FX sama seperti strip FX di Mixer */
 .fx-side-btn[hidden] { display: none; }   /* tombol FX baru muncul setelah channel FX dipilih dari Mixer */
 .fx-side-btn:focus-visible { outline: 2px solid var(--light); outline-offset: -2px; }
 
@@ -221,5 +221,5 @@
 
 /* landscape asli: layar pendek tapi lebar, jadi tinggi panel bawah dihitung dari tinggi layar (vh), bukan lebar (vw), supaya playlist / piano roll masih punya ruang */
 @media (orientation: landscape) {
-  .fx { --fx-h: clamp(84px, 36vh, 150px); --mx-h: clamp(120px, 56vh, 220px); }
+  .fxp { --fx-h: clamp(84px, 36vh, 150px); --mx-h: clamp(120px, 56vh, 220px); }
 }

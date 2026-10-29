@@ -160,7 +160,7 @@ export function mountFxPanel(host: HTMLElement, pitchOpts: PitchPanelOptions, to
   };
 
   host.innerHTML = '';
-  const root = el('section', 'fx');
+  const root = el('section', 'fxp');
   const body = el('div', 'fx-body');
   body.id = 'fx-body';
   const chain = el('div', 'fx-chain');

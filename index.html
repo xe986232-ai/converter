@@ -29,28 +29,47 @@
       <aside id="bw" hidden></aside>
       <div class="center">
         <div class="stage">
-          <section class="pl-host" id="pl-host"></section>
-          <section class="pr-panel" id="pr-panel" hidden>
-            <div class="pr-head">
-              <span class="pr-dot" id="pr-dot"></span>
-              <span class="pr-title" id="pr-title">Piano roll</span>
-              <span class="spacer"></span>
-              <button id="pr-close">Tutup</button>
+          <div class="stage-main">
+            <section class="pl-host" id="pl-host"></section>
+            <section class="pr-panel" id="pr-panel" hidden>
+              <div class="pr-head">
+                <span class="pr-dot" id="pr-dot"></span>
+                <span class="pr-title" id="pr-title">Piano roll</span>
+                <span class="spacer"></span>
+                <button id="pr-close">Tutup</button>
+              </div>
+              <div class="pr-host" id="pr-host"></div>
+            </section>
+          </div>
+          <!-- Panel FX LAMA: menempel di sisi kanan, buka/tutup lewat tab panah di tepi kirinya -->
+          <aside class="fx" id="fxPanel" aria-label="Panel efek">
+            <button class="fx__toggle" id="fxToggle" type="button" aria-expanded="true" aria-controls="fxBody" aria-label="Tutup panel efek" title="Tutup panel efek"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5.2C8 4.6 6.8 5.3 6.8 6.5V17.5C6.8 18.7 8 19.4 9 18.8L17 13.2C18 12.5 18 11.5 17 10.8Z"/></svg></button>
+            <div class="fx__clip">
+              <div class="fx__panel" id="fxBody">
+                <header class="fx__head fx__item" style="--i:0"><h2 class="fx__title">Effects</h2></header>
+                <div class="fx__pages fx__item" style="--i:1" id="fxPages" data-page="plugin" role="tablist" aria-label="Halaman panel efek">
+                  <button type="button" role="tab" class="fx__page" id="fxPagePlugin" data-page="plugin" aria-selected="true" aria-controls="fxList">Plugin</button>
+                  <button type="button" role="tab" class="fx__page" id="fxPageEffect" data-page="effect" aria-selected="false" aria-controls="fxList" tabindex="-1">Effect</button>
+                </div>
+                <div class="fx__body">
+                  <div class="fx__top fx__item" style="--i:2">
+                    <button type="button" class="fx__add" id="fxAdd" aria-haspopup="menu" aria-expanded="false" aria-label="Tambah efek" title="Tambah efek"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+                  </div>
+                  <div class="fx__list" id="fxList"></div>
+                </div>
+              </div>
             </div>
-            <div class="pr-host" id="pr-host"></div>
-          </section>
+          </aside>
         </div>
-        <section class="fx-host" id="fx-host"></section>
+        <section class="fx-host" id="fx-host" hidden></section>
         <div id="dock-host"></div>
       </div>
-      <aside id="pw" hidden></aside>
     </main>
   </div>
   <button id="btn-settings" aria-label="Pengaturan" title="Pengaturan" aria-haspopup="dialog" aria-controls="settings">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
   </button>
   <button id="btn-browser" aria-label="Browser file" title="Browser file"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.2"/><path d="M9.5 4.5v15"/><path d="M5.6 8.5h1.8M5.6 11.5h1.8M5.6 14.5h1.8"/></svg></button>
-  <button id="btn-project" aria-label="Panel project" title="Panel project"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.2"/><path d="M14.5 4.5v15"/><path d="M6.4 9h4.6M6.4 13.5h5.2"/><path d="M16.6 8.5h1.8M16.6 11.5h1.8M16.6 14.5h1.8"/></svg></button>
   <div id="settings" hidden>
     <div class="set-card" role="dialog" aria-modal="true" aria-labelledby="set-title" tabindex="-1">
       <div class="set-head" id="set-title">Pengaturan</div>

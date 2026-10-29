@@ -185,8 +185,8 @@
 
 
 /* ---- penyesuaian untuk playlist canvas baru ---- */
-/* tombol melayang (#btn-browser kiri; #btn-project + #btn-settings kanan) menempati sudut bawah layar: sisakan lorong di kiri-kanan card */
-.dock-host { padding: 0 72px 0 36px; background: var(--bg-dark); }
+/* tombol melayang (#btn-browser kiri; #btn-settings kanan) menempati sudut bawah layar: sisakan lorong di kiri-kanan card */
+.dock-host { padding: 0 40px 0 36px; background: var(--bg-dark); }
 .transportbar .tp-dock { cursor: default; touch-action: manipulation; padding-right: 40px; }   /* card tidak bisa ditarik (keyboard virtual belum ada di bar ini) */
 .transportbar .tp__side--l, .transportbar .tp__side--r { gap: 2px; }
 @media (max-width:420px) { .transportbar { --tb: 26px; --tb-play: 32px; --tb-gap: 4px; } }

@@ -1,11 +1,14 @@
 import { initLandscape } from './landscape';
 import './style.css';
+import './fx-legacy.css';   // CSS panel FX lama (kanan)
 import { mountPlaylist, demoState, type PLClip, type PLNote, type PlaylistState, type PlaylistCanvasHandle } from './playlist-canvas';
 import { mountPianoRoll, type PianoRollCanvasHandle } from './piano-roll-canvas';
 import { mountFxPanel, type FxPanelHandle } from './fx-panel';
 import { mountDock, type Dock } from './dock';   // bar bawah LAMA (transport + metronome + undo / redo)
 import { mountBrowser } from './browser-panel';
-import { mountProjectPanel, type ProjectPanelHandle } from './project-panel';
+import type { ProjectPanelHandle } from './project-panel';   // panel project dihapus dari UI (tempatnya dipakai panel FX lama)
+import { initEffectsPanel } from '../effects-panel';   // buka / tutup panel FX lama (kanan)
+import { initFxRack, type FxRack } from '../fx-rack';   // isi panel FX lama: tombol +, plugin, efek per track
 import { projectStore, newProjectId, type ProjectRec } from './project-store';
 import { backupSupported, backupFolder, syncProject, makeProjectZip, readBackupFolder, readProjectZip, listBackupFolder, entriesOf, usedSampleIds, type RestoredProject, type BackupEntry } from './backup';
 import { engine } from './audio-engine';
@@ -92,10 +95,24 @@ function prepareVsynth(): void {
   }, 250);
 }
 
+// panel FX LAMA (kanan): efek / plugin milik track yang dipilih; dipasang setelah playlist ada (lihat bagian "Panel FX lama")
+let rack: FxRack | null = null, rackTrack: string | null = null;
+const rackTracks = new Set<string>();
+function syncRack(): void {
+  if (!rack) return;
+  const ids = new Set(playlist.getTracks().map(t => String(t.id)));
+  for (const k of [...rackTracks]) if (!ids.has(k)) { rack.drop(k); rackTracks.delete(k); if (rackTrack === k) rackTrack = null; }   // track dihapus: buang efeknya
+  ids.forEach(k => rackTracks.add(k));
+  const sel = String(playlist.getSelTrack());
+  const want = ids.has(sel) ? sel : null;
+  if (want !== rackTrack) { rackTrack = want; rack.show(want); }   // panel mengikuti track terpilih
+}
+
 const playlist: PlaylistCanvasHandle = mountPlaylist(plHost, {
   title: 'DAW Starter',
   theme,
   onChange: () => {
+    syncRack();
     fxPanel?.pitch.refresh();
     syncSettings();
     syncMixer();
@@ -109,7 +126,7 @@ const playlist: PlaylistCanvasHandle = mountPlaylist(plHost, {
   getAudioBlob: async id => browser.getBlob(id),
   playSample: playSampleFor,
   // memilih pattern (clip) di playlist menampilkan panel efek miliknya; tap area kosong tidak mengosongkan panel
-  onSelectClip: id => { if (id != null) { syncPatterns(); fxPanel?.showPattern(id); } fxPanel?.pitch.refresh(); },
+  onSelectClip: id => { if (id != null) { syncPatterns(); fxPanel?.showPattern(id); } fxPanel?.pitch.refresh(); syncRack(); },
   onPitchUpdate: () => fxPanel?.pitch.refresh()   // render pitch (Auto) maju / selesai
 });
 
@@ -189,6 +206,19 @@ fxPanel.onOpenPianoRoll(id => {
   if (c && c.id != null && !c.audio) openEditor(c as PLClip & { id: number });
 });
 syncPatterns();
+
+/* ---------- Panel FX lama (kanan) ---------- */
+// Menggantikan bilah Efek / Mixer / Sample / Module / Tools dan panel project. UI panel bawah baru disembunyikan (#fx-host hidden), tapi tetap
+// dipasang di atas karena masih memegang state instrumen / drum / sample / mixer yang dipakai playlist dan piano roll.
+// Rack lama memakai AudioContext bersama dan masuk ke master engine baru; routing efek lama ke jalur clip baru menyusul.
+rack = initFxRack(() => ({ ctx: engine.context(), dest: engine.master() }));
+initEffectsPanel(
+  () => { playlist.resize(); pianoRoll?.resize(); },   // lebar panel beranimasi: playlist / piano roll ikut menyesuaikan
+  () => { rack?.closePicker(true); }
+);
+plHost.addEventListener('pointerup', () => { window.setTimeout(syncRack, 0); });   // ketuk header track = ganti track terpilih
+syncRack();
+if (!rackTrack) rack.show(null);
 
 // ganti tema: komponen punya dropdown tema sendiri (tersembunyi), jadi cukup set nilainya lalu picu event change
 function setComponentTheme(host: HTMLElement, t: Theme): void {
@@ -418,9 +448,8 @@ browserBtn.classList.toggle('on', browser.isOpen());
 browserBtn.onclick = () => browser.toggle();
 browserBtn.addEventListener('pointerdown', e => e.stopPropagation());
 
-/* ---------- Panel project (kanan): Save + New, daftar project ---------- */
+/* ---------- Panel project (DIHAPUS dari UI; fungsi di bawah tetap ada, tapi tanpa panel tidak terpanggil) ---------- */
 // Buka app = project kosong tanpa nama. New -> popup nama -> project baru masuk daftar. Save menimpa project aktif; ketuk nama di daftar = buka.
-const projectBtn = $<HTMLButtonElement>('btn-project');
 let activeProjectId: string | null = null;
 const hasContent = (): boolean => { const st = playlist.getState(); return st.tracks.length > 0 || st.clips.length > 0; };
 const snapshot = (): unknown => collectProject();
@@ -577,21 +606,8 @@ async function loadFromFolder(): Promise<void> {
   try { const found = await listBackupFolder(); if (found) await loadEntry(found); }
   catch { toast('Folder backup tidak valid.', 5000); }
 }
-projectPanel = mountProjectPanel($('pw'), {
-  onToggle: o => { projectBtn.classList.toggle('on', o); requestAnimationFrame(() => { playlist.resize(); pianoRoll?.resize(); }); },
-  onSave: saveProject,
-  onNew: () => { void newProject(); },
-  onOpen: openProject,
-  onBackupProject: id => { void backupProject(id); },
-  onDownloadProject: id => { void downloadProject(id); },
-  onBackupFolder: () => { void changeBackupFolder(); },
-  onRestore: () => { void restoreAll(); },
-  onLoad: () => { void loadFromFolder(); }
-});
+// panel project (Save / New / daftar) tidak dipasang lagi: tempatnya dipakai panel FX lama; projectPanel tetap null
 refreshProjectList();
-projectBtn.classList.toggle('on', projectPanel.isOpen());
-projectBtn.onclick = () => projectPanel?.toggle();
-projectBtn.addEventListener('pointerdown', e => e.stopPropagation());
 
 /* ---------- PWA: service worker + tombol Pasang ---------- */
 interface BeforeInstallPromptEvent extends Event {
