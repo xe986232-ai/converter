@@ -31,6 +31,8 @@ export function inkOn(hex: string): string {
 // semua warna track yang tersedia (20): 7 pertama diekstrak dari piksel clip audio di gambar referensi, 13 sisanya melengkapi spektrum;
 // dipakai untuk warna acak track baru, menu Color di playlist, dan menu Color di titik tiga channel mixer
 export const TRACK_COLORS = [
+  // 8 warna pertama = palet track web (main.ts COLORS), supaya track baru di playlist senada dengan kartu channel
+  '#ff5c9e', '#a66cff', '#5b8ff3', '#2dd4bf', '#3fbf5f', '#f2b632', '#ff8a4c', '#ef4444',
   '#FE32CF', '#33BB03', '#F96303', '#9741A2', '#C32862', '#2D4793', '#584893',
   '#E8212B', '#FFB300', '#F2E205', '#A6D608', '#00A86B', '#12B5A6', '#00B7EB', '#1E88E5', '#5E35E8', '#B04BFF', '#FF6FA5', '#8D5A3B', '#7C8794'
 ];

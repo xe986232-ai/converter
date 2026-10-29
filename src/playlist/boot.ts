@@ -6,7 +6,7 @@ import './playlist-host.css';
 const host = document.getElementById('playlistHost') as HTMLElement;
 const ws = document.querySelector('.workspace') as HTMLElement;
 
-export const playlist: PlaylistCanvasHandle = mountPlaylist(host, { theme: 'dark' });
+export const playlist: PlaylistCanvasHandle = mountPlaylist(host, { theme: 'web' });
 (window as unknown as { __playlist: PlaylistCanvasHandle }).__playlist = playlist;
 
 // tinggi wadah = tinggi area workspace (host sticky, jadi tidak ikut tergulung kalau kolom channel lebih panjang)

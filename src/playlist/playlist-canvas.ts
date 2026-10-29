@@ -31,7 +31,7 @@ export interface PlaylistCanvasOpts {
   clips?: PLClip[];
   songLen?: number;            // panjang lagu minimum (ketukan), default 64
   bpm?: number;                // default 120
-  theme?: 'light' | 'dark';    // default 'dark'
+  theme?: ThemeName;           // default 'dark'
   title?: string;              // judul lagu (belum ditampilkan; header track sudah dihapus)
   onOpenClip?: (clip: PLClip & { id: number }) => void;   // double-tap pada clip (buka piano roll)
   onChange?: () => void;       // dipanggil setiap data track/clip berubah
@@ -106,7 +106,16 @@ interface Theme {
   abl: boolean;   // gaya clip solid: seluruh clip satu warna channel, nama di atas, note berupa garis tipis
   css: Record<string, string>;
 }
-const THEMES: Record<'dark' | 'light', Theme> = {
+type ThemeName = 'dark' | 'light' | 'web';
+const THEMES: Record<ThemeName, Theme> = {
+  web: {   // tema bawaan web (styles.css :root): --bg #16161c, --panel #1e1e26, --panel2 #252530, --line #33333f, --text #e8e8f0, --muted #8a8a9a, --accent #a66cff
+    bg: '#16161c', rb: '#1e1e26', rw: '#252530', rule: '#33333f', light: '#e8e8f0',
+    lat: '#33333f', latA: [.3, .45, .75], clipLine: 'rgba(22,22,28,.85)', shadow: 'rgba(0,0,0,.18)',
+    rulerBg: '#1e1e26', tick: '#8a8a9a', circle: '#a66cff', circleText: '#16161c',
+    selBorder: '#e8e8f0', selBox: 'rgba(166,108,255,.18)', handleBg: '#e8e8f0', handleFg: '#16161c',
+    playhead: '#a66cff', playShadow: 'rgba(22,22,28,.5)', playW: 1, abl: true,
+    css: { '--bg-dark': '#16161c', '--row-black': '#1e1e26', '--row-white': '#252530', '--rule': '#33333f', '--light': '#e8e8f0' }
+  },
   dark: {   // abu-abu kebiruan, clip warna solid dibatasi garis lurus, playhead tipis
     bg: '#2A2D34', rb: '#34373E', rw: '#3A3E46', rule: '#1D2226', light: '#C5C8D1',
     lat: '#1D2226', latA: [.3, .45, .75], clipLine: 'rgba(14,16,20,.8)', shadow: 'rgba(0,0,0,.18)',
@@ -175,6 +184,7 @@ const TEMPLATE = `
   </label>
   <label>Tema
     <select data-r="theme">
+      <option value="web">Web (bawaan)</option>
       <option value="dark">Gelap (FLM)</option>
       <option value="light">Terang</option>
     </select>
@@ -1745,13 +1755,13 @@ export function mountPlaylist(host: HTMLElement, opts: PlaylistCanvasOpts = {}):
   });
 
   /* ---------- Toolbar & keyboard ---------- */
-  function setTheme(name: 'light' | 'dark'): void {
+  function setTheme(name: ThemeName): void {
     C = THEMES[name];
     for (const k in C.css) root.style.setProperty(k, C.css[k]);
     themeEl.value = name;
     invalidate();
   }
-  themeEl.addEventListener('change', () => setTheme(themeEl.value as 'light' | 'dark'));
+  themeEl.addEventListener('change', () => setTheme(themeEl.value as ThemeName));
   bPlay.onclick = togglePlay;
   // tombol + track: pilih jenis track lewat popup (Instrumen / Audioclip), muncul tepat di atas tombol yang diketuk
   function showTrackMenu(btn: HTMLElement): void {
