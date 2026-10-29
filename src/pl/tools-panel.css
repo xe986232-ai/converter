@@ -1,0 +1,33 @@
+/* Panel Tools: deretan kartu (gaya kartu efek / module: .fx-dev di fx-panel.css) + isi kartu bpmfind. */
+.fx-tools { align-items: stretch; gap: 0; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: thin; scrollbar-color: var(--rule) transparent; }
+.tl-body { gap: 8px; }
+
+.tl-tap { flex: none; align-self: stretch; width: 76px; min-height: 48px; padding: 0; background: var(--fx-accent); color: var(--fx-ink, #1D2226);
+  font-size: 17px; font-weight: 700; letter-spacing: .06em; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.tl-tap:hover { background: var(--fx-accent); }
+.tl-tap.hit { filter: brightness(1.25); transform: scale(.97); }
+.tl-tap:focus-visible, .tl-btn:focus-visible { outline: 2px solid var(--light); outline-offset: 2px; }
+
+.tl-col { flex: none; display: flex; flex-direction: column; justify-content: center; gap: 6px; }
+.tl-pair { display: flex; gap: 6px; }
+.tl-btn { min-width: 50px; height: 32px; padding: 0 10px; touch-action: manipulation; }
+.tl-btn:disabled { opacity: .35; cursor: default; background: var(--row-white); }
+.tl-use:not(:disabled) { background: var(--light); color: var(--bg-dark); }
+
+/* tempat hasil BPM terdeteksi */
+.tl-lcd { flex: none; align-self: stretch; width: 150px; margin: 2px 0; padding: 4px 8px; display: flex; flex-direction: column; justify-content: center; gap: 2px;
+  background: var(--bg-dark); border: 1px solid var(--rule); }
+.tl-cap { font-size: 9px; font-weight: 600; letter-spacing: .1em; opacity: .5; }
+.tl-top { display: flex; align-items: baseline; gap: 6px; }
+.tl-val { font-size: 28px; font-weight: 700; line-height: 1.05; font-variant-numeric: tabular-nums; color: var(--fx-accent); }
+.tl-unit { font-size: 11px; font-weight: 600; letter-spacing: .08em; opacity: .6; }
+.tl-status { font-size: 10px; opacity: .6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+@media (max-height: 639px) {
+  .tl-body { gap: 6px; }
+  .tl-tap { width: 64px; min-height: 40px; font-size: 15px; }
+  .tl-btn { height: 28px; min-width: 44px; padding: 0 8px; }
+  .tl-col { gap: 4px; }
+  .tl-lcd { width: 136px; }
+  .tl-val { font-size: 24px; }
+}

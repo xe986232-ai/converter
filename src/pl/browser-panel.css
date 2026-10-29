@@ -1,0 +1,34 @@
+.bw { position: relative; flex: none; width: var(--bw-w, 220px); max-width: 70dvh; min-height: 0; display: flex; flex-direction: column;
+  background: var(--row-black); border-right: 2px solid var(--rule); padding-bottom: calc(36px + var(--f-bottom)); }
+.bw[hidden] { display: none; }
+.bw-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 3px 4px 3px 8px; background: var(--rule); font-size: 12px; }
+.bw-name { flex: 1 1 100%; font-weight: 600; opacity: .8; }
+.bw-head button, .bw-act button { padding: 5px 8px; font-size: 12px; }
+.bw-sbtn { display: inline-flex; align-items: center; gap: 4px; }
+.bw-sbtn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.bw-sbtn.on { background: var(--light); color: var(--bg-dark); }
+.bw-search { display: flex; gap: 4px; padding: 4px; background: var(--rule); }
+.bw-search[hidden] { display: none; }
+.bw-search input { flex: 1; min-width: 0; padding: 5px 8px; border: 1px solid var(--row-white); border-radius: 0; background: var(--bg-dark); color: var(--light); font: inherit; font-size: 16px; }   /* 16px: mencegah zoom otomatis di iOS */
+.bw-search input:focus-visible { outline: 2px solid var(--light); outline-offset: -2px; }
+.bw-search button { flex: none; padding: 5px 10px; font-size: 12px; }
+.bw-list { flex: 1; min-height: 0; overflow: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 2px 0; }
+.bw-row { display: flex; align-items: center; gap: 6px; height: 30px; padding-right: 8px; white-space: nowrap; cursor: pointer; user-select: none; -webkit-user-select: none; }
+.bw-row.sel { background: var(--light); color: var(--bg-dark); }
+.bw-row.playing .bw-n::after { content: " ♪"; }
+.bw-tri { flex: none; width: 12px; font-size: 9px; text-align: center; opacity: .75; }
+.bw-ico { flex: none; position: relative; width: 16px; height: 12px; border: 2px solid currentColor; border-radius: 2px; opacity: .85; }
+.bw-ico.folder { width: 18px; height: 18px; margin: 0 -1px; border: 0; border-radius: 0; background: currentColor;   /* ikon folder garis (sama dengan set ikon tombol) */
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 7.5a2 2 0 0 1 2-2h4l2 2.2h7a2 2 0 0 1 2 2v7.8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z'/%3E%3Cpath d='M3.5 10.5h17'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 7.5a2 2 0 0 1 2-2h4l2 2.2h7a2 2 0 0 1 2 2v7.8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z'/%3E%3Cpath d='M3.5 10.5h17'/%3E%3C/svg%3E") center / contain no-repeat; }
+.bw-ico.file { width: 11px; height: 15px; margin: 0 2.5px; }
+.bw-n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.bw-empty { display: block; padding: 6px 8px; font-size: 12px; opacity: .55; }
+.bw-act { display: flex; gap: 4px; padding: 4px; background: var(--rule); }
+.bw-act[hidden] { display: none; }
+.bw-act button { flex: 1; }
+.bw-grip { position: absolute; top: 0; right: -6px; bottom: 0; width: 12px; z-index: 2; cursor: col-resize; touch-action: none; }
+.bw-grip::after { content: ""; position: absolute; left: 5px; top: 50%; width: 3px; height: 28px; margin-top: -14px; border-radius: 2px; background: var(--light); opacity: .35; }
+
+/* kartu nama file saat diseret ke playlist: sudut lancip, warna sama dengan panel browser, tidak transparan */
+.bw-ghost { position: fixed; z-index: 60; pointer-events: none; transform: translate(-50%, -150%); max-width: 70dvh; padding: 7px 12px; border-radius: 0;
+  background: var(--row-black); color: var(--light); border: 1px solid var(--rule); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 1; }

@@ -1,0 +1,95 @@
+:root { --bg-dark: #2A2D34; --row-black: #34373E; --row-white: #3A3E46; --rule: #1D2226; --light: #C5C8D1;
+  /* area aman (poni, tepi layar): normal = sisi layar yang sama */
+  --f-top: env(safe-area-inset-top); --f-right: env(safe-area-inset-right); --f-bottom: env(safe-area-inset-bottom); --f-left: env(safe-area-inset-left); }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg-dark); color: var(--light); overscroll-behavior: none;
+  font: 13px/1.2 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+html { overflow: hidden; }
+body { position: fixed; inset: 0; overflow: hidden; }
+#app { display: flex; flex-direction: column; height: 100%;
+  padding: var(--f-top) var(--f-right) var(--f-bottom) var(--f-left); }
+button { font: inherit; color: var(--light); background: var(--row-white); border: 0; border-radius: 0; padding: 7px 12px; cursor: pointer; }
+button:hover { background: var(--rule); }
+
+/* semua menu di atas disembunyikan: header aplikasi dan toolbar playlist / piano roll */
+.top, .plc-bar, .prc-bar { display: none !important; }
+
+.main { flex: 1; min-height: 0; display: flex; flex-direction: row; }
+.center { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+/* panggung: playlist + piano roll (menumpuk di area yang sama); bilah/panel bawah (.fx-host) tetap tampak di bawahnya, jadi Play dan tab Efek / Mixer / Pitch / Module tetap bisa dipakai saat piano roll terbuka */
+.stage { position: relative; isolation: isolate; flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.pl-host { flex: 1; min-height: 0; min-width: 0; display: flex; flex-direction: column; }
+.pl-host > .plc { flex: 1; height: auto; min-height: 0; }
+.fx-host { flex: none; }
+
+/* piano roll: layar penuh di atas playlist */
+/* piano roll: menutupi area playlist (bukan layar penuh), di atas bilah bawah */
+.pr-panel { position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; background: var(--bg-dark); }
+.pr-panel[hidden] { display: none; }
+.pr-host { flex: 1; min-height: 0; min-width: 0; display: flex; flex-direction: column; }
+.pr-host > .prc { flex: 1; height: auto; min-height: 0; }
+
+/* tombol tutup piano roll: kotak kecil mengambang di pojok kanan atas */
+.pr-head { position: absolute; top: 4px; right: 4px; z-index: 6; display: block; padding: 0; background: none; }
+.pr-head .pr-dot, .pr-head .pr-title, .pr-head .spacer { display: none; }
+.pr-head button { width: 30px; height: 30px; padding: 0; font-size: 0; background: var(--light); color: var(--bg-dark); position: relative; }
+.pr-head button::before, .pr-head button::after { content: ""; position: absolute; left: 7px; right: 7px; top: 14px; height: 2px; background: var(--bg-dark); transform: rotate(45deg); }
+.pr-head button::after { transform: rotate(-45deg); }
+
+/* tombol pengaturan (ikon gerigi) mengambang di pojok kanan bawah */
+#btn-settings { position: fixed; right: calc(4px + var(--f-right)); bottom: calc(2px + var(--f-bottom)); z-index: 20;
+  width: 30px; height: 30px; padding: 0; background: var(--light); opacity: .85; }
+#btn-settings svg { position: absolute; left: 3px; top: 3px; width: 24px; height: 24px; fill: var(--bg-dark); }
+
+/* pengaturan: popup di tengah halaman, bentuk dan gaya sama dengan popup menu playlist (.plc-pop): header tipis berjudul di kiri atas, baris rata, sudut rounded.
+   Tanpa latar gelap; lapisan transparan penuh layar hanya untuk menangkap ketukan di luar popup (= tutup). */
+#settings { position: fixed; inset: 0; z-index: 25; display: flex; align-items: center; justify-content: center;
+  padding: calc(8px + var(--f-top)) calc(8px + var(--f-right)) calc(8px + var(--f-bottom)) calc(8px + var(--f-left)); }
+#settings[hidden] { display: none; }
+.set-card { --ctl-w: 184px; --ctl-h: 34px; display: flex; flex-direction: column; min-width: 330px; max-width: 100%; max-height: 100%; overflow: hidden auto; outline: 0;
+  background: var(--bg-dark); border: 1px solid var(--rule); border-radius: 10px; }
+.set-head { height: 24px; padding: 0 14px; display: flex; align-items: center; background: var(--row-white); color: var(--light);
+  font-size: 11px; font-weight: 600; letter-spacing: .03em; white-space: nowrap; user-select: none; -webkit-user-select: none; }
+.set-sub { height: 22px; padding: 0 14px; display: flex; align-items: center; background: var(--bg-dark); color: var(--light); opacity: .6;
+  font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; user-select: none; -webkit-user-select: none; }
+.set-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 46px; padding: 0 14px;
+  background: var(--row-black); border-bottom: 1px solid var(--row-black); }
+.set-row:last-child { border-bottom: 0; }
+.set-row[hidden] { display: none; }
+.set-row > span:first-child { flex: 1; min-width: 0; }
+.set-row button { padding: 0 8px; }
+/* semua kontrol di Pengaturan (BPM, Metronom, Tema, Layar penuh, Pasang): lebar dan tinggi sama, rata di kolom kanan */
+.set-step, .seg, .set-wide { flex: none; width: var(--ctl-w); height: var(--ctl-h); }
+/* Gradient Color: warna Atas di kiri, warna Bawah di kanan, satu baris (teks kecil di kiri tiap kotak warna) */
+.set-pair { gap: 14px; }
+.set-half { display: flex; flex: 1; align-items: center; gap: 8px; min-width: 0; color: var(--light); }
+.set-color { display: block; flex: 1; min-width: 0; width: auto; height: var(--ctl-h); padding: 0; border: 1px solid var(--rule); border-radius: 0; background: var(--row-white); cursor: pointer; }
+.set-wide { display: block; }
+.set-step { display: flex; align-items: stretch; }
+.set-step button { flex: none; width: 44px; height: 100%; padding: 0; font-size: 18px; line-height: 1; }
+.set-step input { flex: 1; min-width: 0; width: auto; height: 100%; padding: 0; border: 0; border-radius: 0; background: var(--bg-dark); color: var(--light); font: inherit; font-weight: 600; text-align: center;
+  -moz-appearance: textfield; appearance: textfield; }
+.set-step input::-webkit-outer-spin-button, .set-step input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.set-step input:focus-visible { outline: 2px solid var(--light); outline-offset: -2px; }
+.seg { display: flex; }
+.seg button { flex: 1; min-width: 0; height: 100%; background: var(--row-white); }
+.seg button.on { background: var(--light); color: var(--bg-dark); }
+
+#toast { position: fixed; left: 50%; bottom: 44px; transform: translateX(-50%); z-index: 30; max-width: 80%;
+  padding: 8px 12px; background: var(--light); color: var(--bg-dark); text-align: center; }
+#toast[hidden] { display: none; }
+
+/* tombol buka/tutup panel browser file */
+#btn-browser { position: fixed; left: calc(4px + var(--f-left)); bottom: calc(2px + var(--f-bottom)); z-index: 20;
+  width: 30px; height: 30px; padding: 0; background: var(--light); opacity: .85; }
+#btn-browser.on { opacity: 1; }
+
+/* tombol buka/tutup panel project (kanan), di sebelah kiri tombol pengaturan */
+#btn-project { position: fixed; right: calc(38px + var(--f-right)); bottom: calc(2px + var(--f-bottom)); z-index: 20;
+  width: 30px; height: 30px; padding: 0; background: var(--light); opacity: .85; }
+#btn-project.on { opacity: 1; }
+
+/* ikon garis (browser, project): satu gaya, 24x24, ujung bulat; gerigi pengaturan tetap seperti semula */
+#btn-browser svg, #btn-project svg { position: absolute; left: 3px; top: 3px; width: 24px; height: 24px; fill: none; stroke: var(--bg-dark); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+/* panel terbuka: kartu putih tetap utuh (tanpa garis gelap di tepi bawah yang tampak memotongnya); tanda terbuka = opacity penuh + ikon sedikit lebih tebal */
+#btn-browser.on svg, #btn-project.on svg { stroke-width: 2.3; }

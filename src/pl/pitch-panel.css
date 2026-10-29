@@ -1,0 +1,31 @@
+/* Panel Sample (dulu Pitch): gaya flat sama seperti panel efek (warna dari :root, aksen --fx-accent).
+   Susunan: nama clip (kiri, vertikal) | kontrol di kanan (knob, Auto, Rev). Progres proses pitch = garis tipis di sisi atas panel. */
+.fx-pitch { position: relative; height: 100%; display: flex; align-items: stretch; background: var(--row-black); }
+.fx-pitch .pt-empty { align-self: center; padding: 0 16px; opacity: .6; white-space: nowrap; }
+.pt { flex: 1; min-width: 0; display: flex; align-items: stretch; }
+.pt[hidden], .pt-empty[hidden] { display: none; }
+
+/* nama clip di kiri: blok solid warna pattern, teks vertikal (sama seperti kartu nama di panel efek) */
+.pt-name { flex: none; align-self: stretch; width: 26px; display: flex; align-items: center; justify-content: center; padding: 6px 0; background: var(--fx-accent); color: var(--fx-ink, #1D2226);
+  writing-mode: vertical-rl; transform: rotate(180deg); font-weight: 600; font-size: 12px; line-height: 1; letter-spacing: .02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; user-select: none; -webkit-user-select: none; }
+
+.pt-body { flex: 1; min-width: 0; min-height: 0; display: flex; align-items: center; gap: 8px; padding: 4px 10px; overflow-x: auto; }   /* 4 knob (Pitch, Volume, Fade In, Fade Out) + 2 tombol; di layar sempit bisa digeser */
+.pt-body > :first-child { margin-left: auto; }   /* rata kanan, tapi kalau melebar knob paling kiri tetap terjangkau saat digeser (flex-end memotongnya) */
+.pt-knob { flex: none; width: 64px; }
+.pt-knob svg { width: 52px; height: 52px; }
+.pt-knob .k-read { font-weight: 600; }
+
+/* tombol bulat Auto / Rev */
+.pt-rwrap { flex: none; width: 54px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.pt-round { width: 44px; height: 44px; padding: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; background: var(--row-white); border: 2px solid var(--rule); touch-action: manipulation; }
+.pt-round.on { background: var(--fx-accent); border-color: var(--fx-accent); color: var(--fx-ink, #1D2226); }
+.pt-round:focus-visible { outline: 2px solid var(--light); outline-offset: 2px; }
+.pt-sub { font-size: 10px; opacity: .75; white-space: nowrap; }
+
+/* progres proses pitch: garis polos di sisi atas panel bawah (.fx), warna pattern; hilang saat selesai */
+.pt-bar { position: absolute; top: 0; left: 0; right: 0; height: 3px; z-index: 2; overflow: hidden; pointer-events: none; }
+.pt-bar[hidden] { display: none; }
+.pt-bar-fill { height: 100%; width: 0; background: var(--fx-accent); transition: width .12s linear; }
+.pt-bar-fill.indet { width: 30%; animation: pt-indet 1s ease-in-out infinite alternate; transition: none; }
+@keyframes pt-indet { from { transform: translateX(0); } to { transform: translateX(233%); } }
+@media (prefers-reduced-motion: reduce) { .pt-bar-fill { transition: none; } .pt-bar-fill.indet { animation: none; width: 100%; opacity: .5; } }
