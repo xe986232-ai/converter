@@ -103,19 +103,23 @@ interface Theme {
   rulerBg: string; tick: string; circle: string; circleText: string;
   selBorder: string; selBox: string; handleBg: string; handleFg: string;
   playhead: string; playShadow: string; playW: number;
+  sep?: string;                         // garis tipis di bawah tiap baris track (tema web: meniru border-bottom lane lama)
+  latW?: [number, number, number];      // lebar garis lattice per tingkat (px; kosong = bawaan 1/2/4)
+  tickBar?: string;                     // warna nomor bar di ruler (kosong = C.light)
   abl: boolean;   // gaya clip solid: seluruh clip satu warna channel, nama di atas, note berupa garis tipis
   css: Record<string, string>;
 }
 type ThemeName = 'dark' | 'light' | 'web';
 const THEMES: Record<ThemeName, Theme> = {
-  web: {   // tema bawaan web (styles.css :root): --bg #16161c, --panel #1e1e26, --panel2 #252530, --line #33333f, --text #e8e8f0, --muted #8a8a9a, --accent #a66cff
-    bg: '#16161c', rb: '#1e1e26', rw: '#252530', rule: '#33333f', light: '#e8e8f0',
-    lat: '#33333f', latA: [.3, .45, .75], clipLine: 'rgba(22,22,28,.85)', shadow: 'rgba(0,0,0,.18)',
-    rulerBg: '#1e1e26', tick: '#8a8a9a', circle: '#a66cff', circleText: '#16161c',
-    selBorder: '#e8e8f0', selBox: 'rgba(166,108,255,.18)', handleBg: '#e8e8f0', handleFg: '#16161c',
-    playhead: '#a66cff', playShadow: 'rgba(22,22,28,.5)', playW: 1, abl: true,
-    css: { '--bg-dark': '#16161c', '--row-black': '#1e1e26', '--row-white': '#252530', '--rule': '#33333f', '--light': '#e8e8f0' }
+  web: {   // tema playlist LAMA web (Ink Rose bawaan, styles.css): --bg #0f0d13, --tl-ruler #19151f, --tl-grid 166,140,206, --tl-play #2dd4bf, --line #2a2233, --card #25252f
+    bg: '#0f0d13', rb: '#0f0d13', rw: '#14111a', rule: '#2a2233', light: '#f2f2f6',
+    lat: '#a68cce', latA: [.05, .09, .16], latW: [1, 1, 1], sep: '#272131', clipLine: 'rgba(15,13,19,.85)', shadow: 'rgba(0,0,0,.22)',
+    rulerBg: '#19151f', tick: '#6f6385', tickBar: '#9486ad', circle: '#ffffff', circleText: '#0f0d13',
+    selBorder: '#ffffff', selBox: 'rgba(255,255,255,.14)', handleBg: '#ffffff', handleFg: '#0f0d13',
+    playhead: '#2dd4bf', playShadow: 'rgba(15,13,19,.5)', playW: 1, abl: true,
+    css: { '--bg-dark': '#0f0d13', '--row-black': '#25252f', '--row-white': '#2f2f3b', '--rule': '#2a2233', '--light': '#f2f2f6' }
   },
+
   dark: {   // abu-abu kebiruan, clip warna solid dibatasi garis lurus, playhead tipis
     bg: '#2A2D34', rb: '#34373E', rw: '#3A3E46', rule: '#1D2226', light: '#C5C8D1',
     lat: '#1D2226', latA: [.3, .45, .75], clipLine: 'rgba(14,16,20,.8)', shadow: 'rgba(0,0,0,.18)',
@@ -818,8 +822,8 @@ export function mountPlaylist(host: HTMLElement, opts: PlaylistCanvasOpts = {}):
       const b = k * ls;
       if (b < -1e-9) continue;
       const x = bx(b), kd = kind(b);
-      const w = kd === 2 ? 4 * U : kd === 1 ? 2 * U : U;
-      const off = kd === 2 ? 2 * U : U;
+      const w = C.latW ? C.latW[kd] * U : kd === 2 ? 4 * U : kd === 1 ? 2 * U : U;
+      const off = C.latW ? 0 : kd === 2 ? 2 * U : U;
       ctx.globalAlpha = C.latA[kd];
       ctx.fillRect(Math.round(x - off), y0, w, y1 - y0);
     }
@@ -832,6 +836,7 @@ export function mountPlaylist(host: HTMLElement, opts: PlaylistCanvasOpts = {}):
       if (y1 < areaY || y0 > areaY + areaH) continue;
       ctx.fillStyle = t.id === S.selTrack && S.tracks.length > 1 ? C.rw : C.rb;
       ctx.fillRect(x0, y0, areaX + areaW - x0, y1 - y0);
+      if (C.sep) { ctx.fillStyle = C.sep; ctx.fillRect(x0, y1, areaX + areaW - x0, U); }
     }
   }
   function drawShadow(): void {
@@ -1011,7 +1016,7 @@ export function mountPlaylist(host: HTMLElement, opts: PlaylistCanvasOpts = {}):
       if (x > areaX + areaW) break;
       const bar = Math.floor(b / S.bpb + 1e-9), isBar = near(b / S.bpb);
       ctx.font = (isBar ? '600 ' : '400 ') + fontPx + 'px system-ui,sans-serif';
-      ctx.fillStyle = isBar ? C.light : C.tick;   // nomor bar terang, ketukan lebih redup
+      ctx.fillStyle = isBar ? (C.tickBar ?? C.light) : C.tick;   // nomor bar terang, ketukan lebih redup
       const text = isBar ? String(bar + 1) : `${bar + 1}.${Math.round(b - bar * S.bpb) + 1}`;
       let tx = Math.round(x + pad);
       const tw = ctx.measureText(text).width;
