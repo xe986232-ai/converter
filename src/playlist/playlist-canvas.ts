@@ -76,6 +76,7 @@ export interface PlaylistCanvasHandle {
   togglePlay(): void;          // play / stop playhead (dipakai tombol Play di bilah bawah)
   rewind(): void;              // stop (kalau sedang play) dan kembalikan playhead ke titik tempat Play terakhir dimulai
   isPlaying(): boolean;
+  getClipPlayhead(clipId: number): number | null;   // posisi playhead relatif awal clip (ketukan, dibungkus per putaran loop clip); null = playhead di luar clip itu. Dipakai piano roll untuk menggerakkan playhead-nya
   undo(): void; redo(): void; canUndo(): boolean; canRedo(): boolean;   // riwayat playlist (dipakai tombol Undo / Redo di bilah bawah)
 }
 
@@ -1935,6 +1936,11 @@ export function mountPlaylist(host: HTMLElement, opts: PlaylistCanvasOpts = {}):
     togglePlay,
     rewind: stopAndReturn,
     isPlaying: () => playing,
+    getClipPlayhead: clipId => {
+      const c = S.clips.find(x => x.id === clipId); if (!c || c.audio) return null;
+      const rel = curBeat() - c.beat;
+      return rel < 0 || rel >= c.len ? null : rel % loopPeriod(c);
+    },
     undo, redo, canUndo: () => undoS.length > 0, canRedo: () => redoS.length > 0
   };
 }
