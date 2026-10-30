@@ -329,6 +329,7 @@ export function mountPlaylist(host: HTMLElement, opts: PlaylistCanvasOpts = {}):
     V = Math.max(1, Math.round(cell / 16));
     hdrW = 0;   // tanpa header track di kiri
     rulerH = Math.round(cell * 1.5);
+    document.documentElement.style.setProperty('--ruler-h', (rulerH / dpr).toFixed(2) + 'px');   // header kiri atas channel mixer (.tl-corner) + kolom track mengikuti tinggi penggaris ini
     areaX = hdrW; areaY = rulerH; areaW = Math.max(10, W - hdrW);
     areaH = Math.max(10, H - rulerH);
     clampView(); invalidate();
@@ -1925,7 +1926,18 @@ export function mountPlaylist(host: HTMLElement, opts: PlaylistCanvasOpts = {}):
     },
     setClipNotes(clipId: number, notes: PLNote[]): void {   // dipakai setelah piano roll selesai mengedit clip
       const c = S.clips.find(x => x.id === clipId); if (!c) return;
-      c.notes = notes.map(n => ({ ...n })); touch();
+      c.notes = notes.map(n => ({ ...n }));
+      // note di luar panjang clip tidak digambar dan tidak diputar (clip default cuma 1 bar, sedangkan piano roll lebih lebar): clip melebar per bar
+      // sampai note terjauh. Hanya melebar (tidak pernah menyusut) dan berhenti di awal clip berikutnya pada track yang sama, jadi tidak menimpa clip lain.
+      if (!c.audio && c.notes.length) {
+        const end = Math.max(...c.notes.map(n => n.beat + n.len));
+        if (end > c.len + 1e-6) {
+          const want = Math.ceil(end / S.bpb - 1e-9) * S.bpb, tail = c.beat + c.len - 1e-6;
+          const next = S.clips.reduce((m, x) => x !== c && x.track === c.track && x.beat >= tail ? Math.min(m, x.beat) : m, Infinity);
+          c.len = r6(Math.max(c.len, Math.min(want, next - c.beat)));
+        }
+      }
+      touch();
     },
     resize,
     stop(): void { stopPlay(); },
