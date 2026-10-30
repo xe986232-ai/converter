@@ -6,6 +6,7 @@
 // Semua state ada di dalam closure mountPlaylist(), jadi bisa dipasang lebih dari satu instance dan dibersihkan lewat destroy().
 // Audio lewat audio-engine.ts: tiap clip -> chain efek pattern -> strip channel track -> master.
 
+import { drawRulerLabels } from '../ruler';
 import { engine } from './audio-engine';
 import { buildPyramid, getPeaks, type Pyramid } from './waveform';
 import { clampPitch, pitchRatio, createPitchCache } from './pitch';
@@ -995,45 +996,11 @@ export function mountPlaylist(host: HTMLElement, opts: PlaylistCanvasOpts = {}):
     ctx.fillStyle = C.tick;
     ctx.beginPath(); ctx.moveTo(areaX, y - T); ctx.lineTo(areaX, y + T); ctx.lineTo(areaX + T, y); ctx.closePath(); ctx.fill();
   }
-  // Ruler hanya berisi angka (tanpa garis tick, tanpa kotak): nomor bar di garis bar, "bar.ketukan" saat zoom cukup dekat.
-  // Langkah label dipilih otomatis supaya teks tidak saling menimpa: 1 ketukan -> 1 bar -> 2 bar -> 4 bar -> ...
-  function rulerLabelStep(fontPx: number): number {
-    const minPx = fontPx * 3.4;   // ruang untuk teks selebar "128.4" + napas
-    let s = S.bpb > 1 ? 1 : S.bpb;
-    while (s * pxBeat() < minPx) s = s < S.bpb ? S.bpb : s * 2;
-    return s;
-  }
+  // penggaris: kode bersama dengan piano roll (src/ruler.ts), jadi keduanya selalu tampil sama
   function drawRuler(): void {
-    const pb = pxBeat();
-    ctx.save();
-    ctx.beginPath(); ctx.rect(areaX, 0, areaW, rulerH); ctx.clip();
-    ctx.fillStyle = C.rulerBg; ctx.fillRect(areaX, 0, areaW, rulerH);
-    const fontPx = Math.round(cell * 0.46);
-    const step = rulerLabelStep(fontPx);
-    const k0 = Math.floor(S.posH / step) - 1, k1 = Math.ceil((S.posH + areaW / pb) / step);
-    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-    const pad = Math.round(cell * 0.28), cy = Math.round(rulerH / 2) + V;
-    const cp = cornerPos();
-    // tombol play ikut playhead, jadi label di bawahnya yang dihindari (saat play tombol tersembunyi, label tidak perlu dihindari)
-    const bl = playing ? Infinity : cp.x - cp.w / 2, br = playing ? -Infinity : cp.x + cp.w / 2;
-    for (let k = Math.max(0, k0); k <= k1; k++) {
-      const b = k * step, x = bx(b);
-      if (x > areaX + areaW) break;
-      const bar = Math.floor(b / S.bpb + 1e-9), isBar = near(b / S.bpb);
-      ctx.font = (isBar ? '600 ' : '400 ') + fontPx + 'px system-ui,sans-serif';
-      ctx.fillStyle = isBar ? (C.tickBar ?? C.light) : C.tick;   // nomor bar terang, ketukan lebih redup
-      const text = isBar ? String(bar + 1) : `${bar + 1}.${Math.round(b - bar * S.bpb) + 1}`;
-      let tx = Math.round(x + pad);
-      const tw = ctx.measureText(text).width;
-      if (tx < br && tx + tw > bl) {   // label tertutup tombol play
-        if (k !== 0) continue;         // label lain disembunyikan selama tertimpa tombol
-        const next = bx(b + step) + pad;   // bar 1: geser ke kanan tombol kalau label berikutnya masih muat
-        if (next - (br + pad) < fontPx * 1.8) continue;
-        tx = Math.round(br + pad);
-      }
-      ctx.fillText(text, tx, cy);
-    }
-    ctx.restore();
+    const cp = cornerPos();   // tombol play ikut playhead, jadi label di bawahnya yang dihindari (saat play tombol tersembunyi, label tidak perlu dihindari)
+    drawRulerLabels({ ctx, areaX, areaW, rulerH, cell, V, posH: S.posH, pxBeat: pxBeat(), bpb: S.bpb,
+      bg: C.rulerBg, tick: C.tick, tickBar: C.tickBar ?? C.light, avoid: playing ? null : { l: cp.x - cp.w / 2, r: cp.x + cp.w / 2 } });
   }
   function drawSelBox(b0: number, r0: number, len: number, rows: number): void {
     const x0 = Math.round(bx(b0)), x1 = Math.round(bx(b0 + len));

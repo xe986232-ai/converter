@@ -4,6 +4,7 @@
 // DERIZ: komponen ini HANYA tampilan + logika editor. Tidak ada audio sendiri (tanpa play / metronom / osilator):
 // bunyi pratinjau lewat opts.playSample (diteruskan ke instrumen DERIZ oleh piano-roll.ts), playhead dikendalikan dari luar lewat setPlayhead().
 
+import { drawRulerLabels } from './ruler';
 import { segsToSec } from './slide';
 import './piano-roll-canvas.css';
 
@@ -70,7 +71,7 @@ interface Theme {
   lat: string; latA: [number, number, number]; octLine: string; rowLine: string | null; rowText: string;
   noteLine: string; noteText: string | null; selFill: string;
   keyBg: string; keyW: string; keyB: string; keySep: string;
-  rulerBg: string; rulerSel: string; tick: string; circle: string; circleText: string;
+  rulerBg: string; rulerSel: string; tick: string; tickBar?: string; circle: string; circleText: string;
   selBorder: string; selBox: string; handleBg: string; handleFg: string;
   playhead: string; playShadow: string; playW: number;
   velSep: string; velBg: string; velLine: string; shadow: string;
@@ -82,7 +83,7 @@ const THEMES: Record<'dark' | 'light', Theme> = {
     lat: '#05040a', latA: [.3, .45, .75], octLine: '#05040a', rowLine: 'rgba(0,0,0,.25)', rowText: 'rgba(242,242,246,.35)',
     noteLine: '#0f0d13', noteText: '#0f0d13', selFill: '#ffffff',
     keyBg: '#0f0d13', keyW: '#e8e8f0', keyB: '#25252f', keySep: 'rgba(0,0,0,.45)',
-    rulerBg: '#16131c', rulerSel: '#2a2233', tick: '#8a8a9a', circle: '#b9b9c9', circleText: '#0f0d13',
+    rulerBg: '#19151f', rulerSel: '#2a2233', tick: '#6f6385', tickBar: '#9486ad', circle: '#b9b9c9', circleText: '#0f0d13',
     selBorder: '#ffffff', selBox: 'rgba(255,255,255,.18)', handleBg: '#ffffff', handleFg: '#0f0d13',
     playhead: '#ffffff', playShadow: 'rgba(15,13,19,.5)', playW: 1,
     velSep: '#0f0d13', velBg: '#16131c', velLine: 'rgba(0,0,0,.35)', shadow: 'rgba(0,0,0,.35)',
@@ -609,47 +610,25 @@ export function mountPianoRoll(host: HTMLElement, opts: PianoRollCanvasOpts = {}
     }
     ctx.restore();
   }
+  // penggaris: kode bersama dengan playlist (src/ruler.ts). Yang khusus piano roll: blok seleksi di belakang angka dan penanda tepi seleksi
   function drawRuler(): void {
-    const pb = pxBeat();
-    ctx.save();
-    ctx.beginPath(); ctx.rect(areaX, 0, areaW, rulerH); ctx.clip();
-    ctx.fillStyle = C.rulerBg; ctx.fillRect(areaX, 0, areaW, rulerH);
-    const cx = Math.round(bx(0));
-    ctx.fillStyle = S.color; ctx.fillRect(cx, 0, 2 * U, Math.round(rulerH * 0.3));
-    const sd = selDisp();
+    const sd = selDisp(), cp = playing ? null : playBtnPos();
+    drawRulerLabels({ ctx, areaX, areaW, rulerH, cell, V, posH: S.posH, pxBeat: pxBeat(), bpb: S.bpb, maxBeat: S.clipLen,
+      bg: C.rulerBg, tick: C.tick, tickBar: C.tickBar ?? C.light, avoid: cp ? { l: cp.x - cp.w / 2, r: cp.x + cp.w / 2 } : null,
+      underlay: () => {
+        if (!sd) return;
+        const x0 = Math.round(bx(sd.beat)), x1 = Math.round(bx(sd.beat + sd.len));
+        ctx.fillStyle = C.rulerSel; ctx.fillRect(x0, 0, Math.max(x1 - x0, 2), rulerH);
+      } });
     if (sd) {
-      const x0 = Math.round(bx(sd.beat)), x1 = Math.round(bx(sd.beat + sd.len));
-      ctx.fillStyle = C.rulerSel; ctx.fillRect(x0, 0, Math.max(x1 - x0, 2), rulerH);
-    }
-    const ls = latticeStep();
-    const k0 = Math.floor(S.posH / ls), k1 = Math.ceil((S.posH + areaW / pb) / ls);
-    ctx.fillStyle = C.tick;
-    for (let k = k0; k <= k1; k++) {
-      const b = k * ls, x = bx(b), kd = kind(b);
-      const h = Math.round(rulerH * (kd ? 0.3 : 0.2));
-      const w = kd === 2 ? 2 * V : V;
-      ctx.fillRect(Math.round(x - w / 2), rulerH - h, w, h);
-    }
-    // nomor bar
-    let m = 1; while (S.bpb * m * pb < cell * 1.6) m *= 2;
-    const i0 = Math.floor(S.posH / (S.bpb * m)), i1 = Math.ceil((S.posH + areaW / pb) / (S.bpb * m));
-    ctx.font = 'bold ' + Math.round(cell * 0.42) + 'px system-ui,sans-serif';
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    for (let i = i0; i <= i1; i++) {
-      const b = i * S.bpb * m; if (b < 0 || b >= S.clipLen) continue;
-      const x = bx(b), ccx = x + 6 * V + U, ccy = rulerH * 0.38;
-      if (!playing) { const cp = playBtnPos(); if (Math.abs(ccx - cp.x) < cp.w / 2 + 6 * V) continue; }   // tertutup tombol play di atas playhead
-      ctx.fillStyle = C.circle; ctx.beginPath(); ctx.arc(ccx, ccy, 6 * V, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = C.circleText; ctx.fillText(String(i * m + 1), ccx, ccy + 1);
-    }
-    ctx.fillStyle = C.tick; ctx.fillRect(areaX, rulerH - V, areaW, V);
-    if (sd) {
+      ctx.save();
+      ctx.beginPath(); ctx.rect(areaX, 0, areaW, rulerH); ctx.clip();
       const x0 = Math.round(bx(sd.beat)), x1 = Math.round(bx(sd.beat + sd.len));
       ctx.fillStyle = S.color;
       ctx.fillRect(x0, 0, 2 * U, Math.round(rulerH * 0.5));
       ctx.fillRect(x1 - 2 * U, 0, 2 * U, Math.round(rulerH * 0.5));
+      ctx.restore();
     }
-    ctx.restore();
   }
   function drawSelBox(b0: number, r0: number, len: number, rows: number): void {
     const x0 = Math.round(bx(b0)), x1 = Math.round(bx(b0 + len));
@@ -768,7 +747,6 @@ export function mountPianoRoll(host: HTMLElement, opts: PianoRollCanvasOpts = {}
   }
   function drawCorner(): void {
     ctx.fillStyle = C.rulerBg; ctx.fillRect(0, 0, kbW, rulerH);
-    ctx.fillStyle = C.tick; ctx.fillRect(0, rulerH - V, kbW, V);
   }
   function draw(): void {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
