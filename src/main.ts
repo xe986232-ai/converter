@@ -2225,7 +2225,7 @@ function setAutoScroll(on) {
   userScrollUntil = 0;   // dinyalakan saat main: timeline langsung menyusul playhead
   toast('Auto scroll ' + (autoScroll ? 'nyala' : 'mati'));
 }
-// Track Size (View > Track Size): tinggi semua track. Tinggi card mixer dan lane playlist keduanya memakai --lane, diatur lewat html[data-tracksize] (styles.css)
+// Track Size (View > Track Size): tinggi semua track. --lane (html[data-tracksize], styles.css) dipakai sebagai tinggi baris playlist canvas lewat setRowHeight; card channel mixer mengikuti tinggi baris itu (onView di playlist/boot.ts)
 const TRACKSIZE_KEY = 'derizmp3.trackSize', TRACK_SIZES = ['compact', 'small', 'normal', 'large'];
 let trackSize = 'normal';
 try { const v = localStorage.getItem(TRACKSIZE_KEY); if (TRACK_SIZES.includes(v)) trackSize = v; } catch { /* penyimpanan diblokir: bawaan normal */ }
@@ -2233,6 +2233,7 @@ document.documentElement.dataset.tracksize = trackSize;
 function setTrackSize(v) {
   if (!TRACK_SIZES.includes(v) || v === trackSize) return;
   trackSize = v; document.documentElement.dataset.tracksize = v;
+  playlist.setRowHeight(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--lane')));   // tinggi baris playlist canvas = --lane; card channel mixer ikut lewat onView
   try { localStorage.setItem(TRACKSIZE_KEY, v); } catch { /* abaikan */ }
   patBarPlace();                                  // toolbar pattern ikut turun / naik sesuai lane
   setTimeout(patBarPlace, REDUCE ? 0 : 340);      // dan sekali lagi setelah animasi tinggi selesai

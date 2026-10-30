@@ -6,6 +6,9 @@ import './playlist-host.css';
 
 const host = document.getElementById('playlistHost') as HTMLElement;
 const ws = document.querySelector('.workspace') as HTMLElement;
+// channel mixer (kolom kiri): kartu track mengikuti zoom vertikal dan gulir vertikal playlist canvas (lihat onView di bawah)
+const tlist = document.querySelector('.tracklist') as HTMLElement;
+const hdrs = tlist.querySelector('.headers') as HTMLElement;
 
 // ---- pattern <-> piano roll ----
 // nada clip disimpan di piano roll dengan kunci 'plc:<id clip>'. PLNote {key, beat, len, vel 1..255, slide} <-> NoteData {p, s, l, v 0..1, sl}; beat relatif awal clip di kedua sisi.
@@ -34,6 +37,15 @@ export const playlist: PlaylistCanvasHandle = mountPlaylist(host, {
     const t = playlist.getTracks().find(x => x.id === clip.track);
     openPianoRoll({ id: key, track: t?.name ?? 'Track', pattern: clip.name, color: t?.color });
   },
+  // zoom vertikal playlist -> tinggi kartu channel mixer (--pl-row) dan gulir vertikal playlist -> posisi kartu (top negatif). Zoom horizontal tidak mengubah apa pun di sini.
+  // data-rowsize menyesuaikan isi kartu dengan tingginya (xs: tanpa baris volume/pan, s: rapat, m: normal, l: renggang), lihat styles.css
+  onView: ({ rowH, scrollY }) => {
+    tlist.classList.add('tracklist--pl');
+    tlist.style.setProperty('--pl-row', rowH.toFixed(2) + 'px');
+    hdrs.style.top = (-scrollY).toFixed(2) + 'px';
+    const sz = rowH < 56 ? 'xs' : rowH < 68 ? 's' : rowH >= 90 ? 'l' : 'm';
+    if (tlist.dataset.rowsize !== sz) tlist.dataset.rowsize = sz;
+  },
   // ikon tombol Play di bilah bawah ikut berubah (Putar / Jeda) saat playlist canvas play / stop
   onTransport: playing => {
     const btn = document.querySelector('.tp .play');
@@ -46,7 +58,7 @@ export const playlist: PlaylistCanvasHandle = mountPlaylist(host, {
 (window as unknown as { __playlist: PlaylistCanvasHandle }).__playlist = playlist;
 
 // tinggi wadah = tinggi area workspace (host sticky, jadi tidak ikut tergulung kalau kolom channel lebih panjang)
-const fit = () => { host.style.height = ws.clientHeight + 'px'; playlist.resize(); };
+const fit = () => { host.style.height = ws.clientHeight + 'px'; tlist.style.height = ws.clientHeight + 'px'; playlist.resize(); };   // kolom channel mixer setinggi area yang sama: digulung lewat onView, bukan oleh scroll workspace
 new ResizeObserver(fit).observe(ws);
 new ResizeObserver(() => playlist.resize()).observe(host);
 fit();

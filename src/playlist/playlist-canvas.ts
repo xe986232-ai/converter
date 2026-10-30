@@ -38,6 +38,7 @@ export interface PlaylistCanvasOpts {
   getAudioBlob?: (fileId: string) => Promise<Blob | null>;   // ambil isi file audio dari panel browser (untuk diputar dan digambar)
   onSelectClip?: (clipId: number | null) => void;   // clip yang dipilih berubah (null = tidak ada clip terpilih)
   onTransport?: (playing: boolean) => void;   // dipanggil saat play/stop
+  onView?: (v: { rowH: number; scrollY: number }) => void;   // tinggi baris (zoom vertikal) dan gulir vertikal, dalam px CSS; dipakai kolom channel mixer supaya kartu track ikut melebar / ikut tergulung
   onHistory?: () => void;      // riwayat undo / redo berubah (tombol Undo / Redo di bilah bawah ikut aktif / mati)
   onPitchUpdate?: () => void;  // render pitch (mode Auto) maju / selesai: panel Pitch menyegarkan tampilannya
   playSample?: (clipId: number, key: number, vel: number, when: number | null | undefined, dur: number | undefined, segs?: { off: number; key: number; dur: number }[]) => Voice | null;   // clip instrumen yang memakai vsynth: suara sampel, bukan oscillator bawaan (null = pakai oscillator)
@@ -65,6 +66,7 @@ export interface PlaylistCanvasHandle {
   addTrack(kind: PLTrackKind, name?: string, color?: string): number;   // tambah track dari luar (mis. kartu channel); mengembalikan id track
   addClipToTrack(trackId: number | null, fileId: string, name: string, clientX?: number | null): Promise<boolean>;   // taruh file audio di track itu (null / tidak ada = track audio baru); clientX null = ketukan 0
   resize(): void;
+  setRowHeight(cssPx: number): void;   // atur zoom vertikal supaya satu baris setinggi cssPx (px CSS); dipakai View > Track Size
   stop(): void;
   setBpm(bpm: number): void;   // tempo project (40..240); ikut tersimpan di file project
   setMetronome(on: boolean): void;   // klik tiap ketukan saat playlist berjalan (aksen di ketukan pertama tiap bar)
@@ -1119,7 +1121,17 @@ export function mountPlaylist(host: HTMLElement, opts: PlaylistCanvasOpts = {}):
       ctx.beginPath(); ctx.moveTo(cx - a * 0.6, cy - a); ctx.lineTo(cx + a, cy); ctx.lineTo(cx - a * 0.6, cy + a); ctx.closePath(); ctx.fill();
     }
   }
+  // channel mixer (kolom kiri) memakai tinggi baris dan gulir vertikal yang sama dengan canvas: dikabari tiap draw kalau salah satunya berubah
+  let lastRowH = -1, lastScrollY = -1;
+  function notifyView(): void {
+    if (!opts.onView) return;
+    const rh = rowH() / dpr, sy = S.posV * rowH() / dpr;
+    if (Math.abs(rh - lastRowH) < 0.005 && Math.abs(sy - lastScrollY) < 0.005) return;
+    lastRowH = rh; lastScrollY = sy;
+    opts.onView({ rowH: rh, scrollY: sy });
+  }
   function draw(): void {
+    notifyView();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
     ctx.save();
@@ -1940,6 +1952,11 @@ export function mountPlaylist(host: HTMLElement, opts: PlaylistCanvasOpts = {}):
       touch();
     },
     resize,
+    setRowHeight(cssPx: number): void {
+      if (!(cssPx > 0) || !cell) return;
+      S.zV = cssPx * dpr / cell;   // posV (baris paling atas yang terlihat) tetap
+      hideAdd(); clampView(); syncZoomUI(); invalidate();
+    },
     stop(): void { stopPlay(); },
     setBpm: applyBpm,
     setMetronome(on: boolean): void {

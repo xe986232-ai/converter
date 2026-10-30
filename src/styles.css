@@ -2409,12 +2409,18 @@ html[data-tracksize="large"]{--lane:100px}
 .lane{transition:filter .35s var(--ease-out),height .32s var(--ease-out)}
 .trkcard__inst{transition:transform .3s var(--ease-spring),background-color .45s var(--ease-inout),width .3s var(--ease-out),height .3s var(--ease-out)}   /* transisi lama + ukuran */
 .trackmeter{transition:opacity .25s ease .2s,visibility 0s,top .3s var(--ease-out),bottom .3s var(--ease-out)}
-html[data-tracksize="compact"] .trkcard__ctrl{display:none}
-html[data-tracksize="compact"] .trkcard__inst{width:28px;height:28px}
-html[data-tracksize="compact"] .trkcard__inst .ico{width:16px;height:16px}
-html[data-tracksize="compact"] .trackmeter{top:5px;bottom:5px}
-html[data-tracksize="small"] .trkcard__rows{gap:0}   /* 60px: isi card hampir penuh, rapatkan jarak antar baris */
-html[data-tracksize="large"] .trkcard__rows{gap:10px}
+/* isi card menyesuaikan tinggi baris playlist (zoom vertikal / Track Size): data-rowsize ditulis playlist/boot.ts dari tinggi baris sebenarnya */
+.tracklist[data-rowsize="xs"] .trkcard__ctrl{display:none}
+.tracklist[data-rowsize="xs"] .trkcard__inst{width:28px;height:28px}
+.tracklist[data-rowsize="xs"] .trkcard__inst .ico{width:16px;height:16px}
+.tracklist[data-rowsize="xs"] .trackmeter{top:5px;bottom:5px}
+.tracklist[data-rowsize="s"] .trkcard__rows{gap:0}   /* ~60px: isi card hampir penuh, rapatkan jarak antar baris */
+.tracklist[data-rowsize="l"] .trkcard__rows{gap:10px}
+/* channel mixer ikut playlist canvas: tinggi card = tinggi baris canvas (--pl-row, ikut zoom vertikal), tanpa transisi supaya pinch / slider zoom tidak tertinggal.
+   Kolom setinggi workspace dan tidak menggulung sendiri; posisi vertikalnya digeser lewat top (position:relative) mengikuti gulir canvas. */
+.tracklist--pl{overflow:hidden}
+.tracklist--pl .headers{position:relative}
+.tracklist--pl .trkcard-wrap{height:var(--pl-row);transition:none}
 /* ikon ukuran di menu: batang yang makin tinggi */
 .track-menu__sz{flex:none;width:16px;display:grid;place-items:center}
 .track-menu__sz i{display:block;width:14px;height:var(--h);border-radius:3px;background:currentColor;opacity:.75}
