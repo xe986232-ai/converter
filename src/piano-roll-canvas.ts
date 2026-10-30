@@ -71,7 +71,7 @@ interface Theme {
   lat: string; latA: [number, number, number]; octLine: string; rowLine: string | null; rowText: string;
   noteLine: string; noteText: string | null; selFill: string;
   keyBg: string; keyW: string; keyB: string; keySep: string;
-  rulerBg: string; rulerSel: string; tick: string; tickBar?: string; circle: string; circleText: string;
+  rulerBg: string; rulerSel: string; tick: string; tickBar?: string; tickLine: string; circle: string; circleText: string;
   selBorder: string; selBox: string; handleBg: string; handleFg: string;
   playhead: string; playShadow: string; playW: number;
   velSep: string; velBg: string; velLine: string; shadow: string;
@@ -83,7 +83,7 @@ const THEMES: Record<'dark' | 'light', Theme> = {
     lat: '#05040a', latA: [.3, .45, .75], octLine: '#05040a', rowLine: 'rgba(0,0,0,.25)', rowText: 'rgba(242,242,246,.35)',
     noteLine: '#0f0d13', noteText: '#0f0d13', selFill: '#ffffff',
     keyBg: '#0f0d13', keyW: '#e8e8f0', keyB: '#25252f', keySep: 'rgba(0,0,0,.45)',
-    rulerBg: '#19151f', rulerSel: '#2a2233', tick: '#6f6385', tickBar: '#9486ad', circle: '#b9b9c9', circleText: '#0f0d13',
+    rulerBg: '#19151f', rulerSel: '#2a2233', tick: '#6f6385', tickBar: '#9486ad', tickLine: '#ffffff', circle: '#b9b9c9', circleText: '#0f0d13',
     selBorder: '#ffffff', selBox: 'rgba(255,255,255,.18)', handleBg: '#ffffff', handleFg: '#0f0d13',
     playhead: '#ffffff', playShadow: 'rgba(15,13,19,.5)', playW: 1,
     velSep: '#0f0d13', velBg: '#16131c', velLine: 'rgba(0,0,0,.35)', shadow: 'rgba(0,0,0,.35)',
@@ -94,7 +94,7 @@ const THEMES: Record<'dark' | 'light', Theme> = {
     lat: '#000000', latA: [.08, .15, .35], octLine: 'rgba(0,0,0,.35)', rowLine: 'rgba(0,0,0,.07)', rowText: 'rgba(0,0,0,.35)',
     noteLine: '#3B2808', noteText: '#3B2808', selFill: '#FFD84A',
     keyBg: '#8A8A8A', keyW: '#F1F1F1', keyB: '#2E2E2E', keySep: 'rgba(0,0,0,.35)',
-    rulerBg: '#D2D2D2', rulerSel: '#B8B8B8', tick: '#7C7C7C', circle: '#2A2A2A', circleText: '#F1F1F1',
+    rulerBg: '#D2D2D2', rulerSel: '#B8B8B8', tick: '#7C7C7C', tickLine: '#222222', circle: '#2A2A2A', circleText: '#F1F1F1',
     selBorder: '#2A2A2A', selBox: 'rgba(0,0,0,.12)', handleBg: '#2A2A2A', handleFg: '#F1F1F1',
     playhead: '#ffffff', playShadow: 'rgba(0,0,0,.35)', playW: 1,
     velSep: '#9A9A9A', velBg: '#BDBDBD', velLine: 'rgba(0,0,0,.1)', shadow: 'rgba(0,0,0,.12)',
@@ -616,9 +616,18 @@ export function mountPianoRoll(host: HTMLElement, opts: PianoRollCanvasOpts = {}
     drawRulerLabels({ ctx, areaX, areaW, rulerH, cell, V, posH: S.posH, pxBeat: pxBeat(), bpb: S.bpb, maxBeat: S.clipLen,
       bg: C.rulerBg, tick: C.tick, tickBar: C.tickBar ?? C.light, avoid: cp ? { l: cp.x - cp.w / 2, r: cp.x + cp.w / 2 } : null,
       underlay: () => {
-        if (!sd) return;
-        const x0 = Math.round(bx(sd.beat)), x1 = Math.round(bx(sd.beat + sd.len));
-        ctx.fillStyle = C.rulerSel; ctx.fillRect(x0, 0, Math.max(x1 - x0, 2), rulerH);
+        if (sd) {
+          const x0 = Math.round(bx(sd.beat)), x1 = Math.round(bx(sd.beat + sd.len));
+          ctx.fillStyle = C.rulerSel; ctx.fillRect(x0, 0, Math.max(x1 - x0, 2), rulerH);
+        }
+        // garis tick kecil di tepi bawah penggaris: pendek (hanya terlihat sedikit), putih; bar sedikit lebih tinggi dan tebal
+        const ls = latticeStep(), pb = pxBeat();
+        const k0 = Math.floor(S.posH / ls), k1 = Math.ceil((S.posH + areaW / pb) / ls);
+        ctx.fillStyle = C.tickLine;
+        for (let k = k0; k <= k1; k++) {
+          const b = k * ls, kd = kind(b), h = Math.round(rulerH * (kd ? 0.2 : 0.12)), w = kd === 2 ? 2 * V : V;
+          ctx.fillRect(Math.round(bx(b) - w / 2), rulerH - h, w, h);
+        }
       } });
     if (sd) {
       ctx.save();

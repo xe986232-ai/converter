@@ -277,7 +277,7 @@ export function mountPlaylist(host: HTMLElement, opts: PlaylistCanvasOpts = {}):
   let nextClipId = 1, nextTrackId = 1;
   const S = {
     tracks: [] as TR[], clips: [] as CL[], len: opts.songLen ?? 64, spb: 4, bpb: 4, bpm: opts.bpm ?? 120,
-    zH: 4, zV: 2.08, posH: 0, posV: 0,
+    zH: 4, zV: 3, posH: 0, posV: 0,
     lastLen: 4, selTrack: 0, cur: 0,                 // cur = id clip aktif (0 = tidak ada)
     sel: null as Sel | null, handles: false,
   };
