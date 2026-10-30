@@ -1,6 +1,6 @@
 // Memasang playlist canvas di #playlistHost (di sebelah kolom channel). Fungsi modul (mixer, efek, piano roll, transport, project)
 // belum disambungkan ke playlist ini; itu dikerjakan belakangan lewat handle `playlist` (window.__playlist untuk percobaan).
-import { mountPlaylist, type PlaylistCanvasHandle, type PLNote } from './playlist-canvas';
+import { mountPlaylist, type PlaylistCanvasHandle, type PLNote, type PLClip } from './playlist-canvas';
 import { openPianoRoll, setPianoRollNotes, getPianoRollNotes, setPianoRollPlaying, type NoteData } from '../piano-roll';
 import './playlist-host.css';
 
@@ -34,6 +34,22 @@ export function plNotesChanged(id: string): boolean {
 // file audio yang di-upload lewat alur Audio clip: id -> File; dibaca playlist canvas lewat getAudioBlob (diputar dan digambar gelombangnya)
 export const audioFiles = new Map<string, Blob>();
 
+// buka clip nada di piano roll (double-tap clip, atau menu pattern di plugin DERIZ lewat openClipById). keepView: zoom / scroll piano roll tetap
+function openClipEditor(clip: PLClip & { id: number }, keepView = false): void {
+  if (clip.audio) return;   // clip audio tidak punya nada
+  const key = PK + clip.id;
+  loading = true; setPianoRollNotes(key, (clip.notes ?? []).map(toPr)); loading = false;
+  const t = playlist.getTracks().find(x => x.id === clip.track);
+  const plugin = plugHooks.openClip?.(clip);   // nama plugin (mis. DERIZ) di toolbar piano roll; preview nada ikut bunyi lewat plugin itu
+  openPianoRoll({ id: key, track: t?.name ?? 'Track', pattern: clip.name, color: t?.color, keepView, ...(plugin ? { plugin } : {}) });
+}
+export function openClipById(id: number, keepView = false): boolean {
+  const c = playlist.getState().clips.find(x => x.id === id);
+  if (!c || c.audio) return false;
+  openClipEditor(c as PLClip & { id: number }, keepView);
+  return true;
+}
+
 export const playlist: PlaylistCanvasHandle = mountPlaylist(host, {
   theme: 'web',
   getAudioBlob: async id => audioFiles.get(id) ?? null,
@@ -41,14 +57,7 @@ export const playlist: PlaylistCanvasHandle = mountPlaylist(host, {
   playSample: (clipId, key, vel, when, dur, segs) => plugHooks.playSample?.(clipId, key, vel, when, dur, segs) ?? null,
   onChange: () => plugHooks.changed?.(),
   // double-tap pattern (clip nada) = buka piano roll; nada diedit langsung ke clip itu (lihat plNotesChanged)
-  onOpenClip: clip => {
-    if (clip.audio) return;   // clip audio tidak punya nada
-    const key = PK + clip.id;
-    loading = true; setPianoRollNotes(key, (clip.notes ?? []).map(toPr)); loading = false;
-    const t = playlist.getTracks().find(x => x.id === clip.track);
-    const plugin = plugHooks.openClip?.(clip);   // nama plugin (mis. DERIZ) di toolbar piano roll; preview nada ikut bunyi lewat plugin itu
-    openPianoRoll({ id: key, track: t?.name ?? 'Track', pattern: clip.name, color: t?.color, ...(plugin ? { plugin } : {}) });
-  },
+  onOpenClip: clip => openClipEditor(clip),
   // zoom vertikal playlist -> tinggi kartu channel mixer (--pl-row) dan gulir vertikal playlist -> posisi kartu (top negatif). Zoom horizontal tidak mengubah apa pun di sini.
   // data-rowsize menyesuaikan isi kartu dengan tingginya (xs: tanpa baris volume/pan, s: rapat, m: normal, l: renggang), lihat styles.css
   onView: ({ rowH, scrollY }) => {

@@ -8,7 +8,7 @@ import '@fontsource/plus-jakarta-sans/latin-600.css';
 import '@fontsource/plus-jakarta-sans/latin-700.css';
 import './no-context-menu';   // tutup menu klik-tahan / klik kanan bawaan browser
 import './no-zoom';   // kunci zoom halaman (pinch, Ctrl + roda, Ctrl + / -)
-import { playlist, audioFiles, plNotesChanged, plugHooks } from './playlist/boot';   // playlist canvas (menggantikan tampilan timeline lama)
+import { playlist, audioFiles, plNotesChanged, plugHooks, openClipById } from './playlist/boot';   // playlist canvas (menggantikan tampilan timeline lama)
 import { openAudioUploadCard, trackAudioFiles } from './audio-upload-card';
 import { initEffectsPanel } from './effects-panel';
 import { initTrackMeters } from './track-meters';
@@ -1016,30 +1016,33 @@ function enterPatternAs(el, fxId, keepView = false) {
   renderPlayhead();
 }
 const patternBridge = {
+  // menu pattern di plugin DERIZ: semua clip nada di playlist canvas (urut dari atas ke bawah lalu kiri ke kanan). Pilih clip = buka piano roll-nya,
+  // dan nada clip itu dibunyikan lewat DERIZ ini (plClipTarget), juga kalau clip-nya ada di track lain.
   list(fxId) {
-    const rows = [...lanesEl.querySelectorAll('.pattern:not([data-clip]):not([data-au-id])')].map(el => {
-      const lane = el.parentElement, lt = lane.dataset.track, id = el.dataset.prId;
-      const nm = document.getElementById('track-name-' + lt), cont = document.querySelector('.trkcard-wrap[data-track="' + lt + '"]');
-      return {
-        title: el.querySelector('.pattern__title').textContent || 'Pattern',
-        trackName: nm ? nm.textContent : 'Track',
-        color: (cont && getComputedStyle(cont).getPropertyValue('--track-color').trim()) || '#a66cff',
-        bar: Math.round(pl(el) / BAR_W * 100) / 100 + 1,
-        notes: id ? getPianoRollNotes(patKey(id, fxId, lt)).length : 0,
-        ref: el, top: lane.offsetTop, left: pl(el)
-      };
-    });
-    return rows.sort((a, b) => a.top - b.top || a.left - b.left);
+    const st = playlist.getState(), order = new Map(st.tracks.map((t, i) => [t.id, i]));
+    return st.clips.filter(c => !c.audio && order.has(c.track)).map(c => {
+      const t = st.tracks[order.get(c.track)], tg = plTargetOf(c.id, c.track);
+      return {title: c.name, trackName: t.name, color: t.color, bar: Math.round(c.beat / 4 * 100) / 100 + 1,
+        notes: tg && tg.fx === fxId ? (c.notes?.length ?? 0) : 0, ref: c.id, o: order.get(c.track), b: c.beat};
+    }).sort((x, y) => x.o - y.o || x.b - y.b);
   },
-  open(row, fxId) { if (row.ref.isConnected) enterPatternAs(row.ref, fxId); },
-  drop(fxId) {   // DERIZ di-drag & drop ke piano roll yang terbuka: piano roll pindah ke nada DERIZ ini, tampilan (zoom / scroll) tetap
-    if (!isPianoRollOpen() || !prEl || !prEl.isConnected) return false;
-    enterPatternAs(prEl, fxId, true); toast('DERIZ masuk ke piano roll'); return true;
+  open(row, fxId) {
+    const tr = fxRack.derizTrackOf(fxId); if (tr === undefined) return;
+    plClipTarget.set(row.ref, {track: tr, fx: fxId});
+    openClipById(row.ref);
+  },
+  drop(fxId) {   // DERIZ di-drag & drop ke piano roll yang terbuka: clip itu pindah ke DERIZ ini, tampilan (zoom / scroll) tetap
+    const tr = fxRack.derizTrackOf(fxId);
+    if (!isPianoRollOpen() || plOpenClip === null || tr === undefined) return false;
+    plClipTarget.set(plOpenClip, {track: tr, fx: fxId});
+    if (!openClipById(plOpenClip, true)) return false;
+    toast('DERIZ masuk ke piano roll'); return true;
   },
   // Hapus plugin DERIZ TIDAK menghapus nada piano roll di pattern track-nya. Nada milik plugin yang dihapus digabung ke nada polos pattern (kunci pattern itu sendiri):
   // dibaca DERIZ teratas yang tersisa (pemilik baru), atau DERIZ baru yang ditambah berikutnya (fx-rack: claimPlain). Nada layer DERIZ teratas yang mewarisi ikut digabung
   // ke kunci polos supaya tidak ada nada yatim. Hanya nada DERIZ ini di pattern track LAIN (layer lintas track) yang dibuang bersama plugin-nya.
   removed(fxId, track, ownedPlain, nextOwner) {
+    for (const [k, v] of plClipTarget) if (v.fx === fxId) plClipTarget.delete(k);   // clip playlist yang diarahkan ke DERIZ ini kembali ke DERIZ bawaan track-nya
     if (isPianoRollOpen()) closePianoRoll();   // piano roll yang terbuka mungkin memegang kunci nada yang akan dipindah
     const merge = (to, from) => {
       const src = getPianoRollNotes(from); if (!src.length) { clearPianoRollNotes(from); return; }
@@ -1784,23 +1787,33 @@ function plMixerOfClip(clipId: number): string | undefined {
   if (pt === undefined) { plClipTrack = new Map(playlist.getClipsInfo().map(c => [c.id, c.track])); pt = plClipTrack.get(clipId); }
   return pt === undefined ? undefined : plMixerOf(pt);
 }
+// DERIZ target sebuah clip: yang dipilih lewat menu pattern / drop di piano roll (plClipTarget), kalau tidak ada: DERIZ pertama di track clip itu
+const plClipTarget = new Map<number, {track: string; fx: number}>();
+let plOpenClip: number | null = null;   // clip yang sedang terbuka di piano roll
+function plTargetOf(clipId: number, plTrack?: number): {track: string; fx: number} | null {
+  const a = plClipTarget.get(clipId);
+  if (a && fxRack.derizTrackOf(a.fx) === a.track) return a;
+  const mix = plTrack !== undefined ? plMixerOf(plTrack) : plMixerOfClip(clipId), fx = mix === undefined ? undefined : fxRack.derizIds(mix)[0];
+  return mix !== undefined && fx !== undefined ? {track: mix, fx} : null;
+}
 plugHooks.playSample = (clipId, key, vel, when, dur, segs) => {
-  const mix = plMixerOfClip(clipId);
-  if (mix === undefined || !fxRack.hasDeriz(mix)) return null;
+  const tg = plTargetOf(clipId);
+  if (!tg || !fxRack.hasDeriz(tg.track)) return null;
   audio();
   if (when == null || dur == null) {   // nada langsung (mis. ketuk nada): tahan sampai stop
-    const id = fxRack.derizOn(mix, key);
+    const id = fxRack.derizOn(tg.track, key, tg.fx);
     return { stop: () => fxRack.derizOff(id) };
   }
-  fxRack.derizPlay(mix, key, when, dur, segs?.map(g => ({ when: when + g.off, to: g.key, dur: g.dur })), undefined, vel);
+  fxRack.derizPlay(tg.track, key, when, dur, segs?.map(g => ({ when: when + g.off, to: g.key, dur: g.dur })), tg.fx, vel);
   return { stop: () => { /* nada terjadwal berhenti sendiri; Stop memanggil derizStop (plugHooks.transport) */ }, start: when };
 };
 plugHooks.openClip = clip => {
-  const mix = plMixerOf(clip.track), fx = mix === undefined ? undefined : fxRack.derizIds(mix)[0];
-  prvTarget = mix !== undefined && fx !== undefined ? {track: mix, fx} : null;   // preview nada di piano roll ini lewat DERIZ track clip
-  if (fx === undefined) return undefined;
+  const tg = plTargetOf(clip.id, clip.track);
+  prvTarget = tg;   // preview nada di piano roll ini lewat DERIZ clip
+  plOpenClip = clip.id;
+  if (!tg) return undefined;
   fxRack.derizWarm();   // siapkan sampler sebelum nada pertama
-  return fxRack.derizLabel(fx);
+  return fxRack.derizLabel(tg.fx);
 };
 plugHooks.transport = playing => { if (playing) fxRack.derizWarm(); else fxRack.derizStop(); };
 function addTrack(t) {
