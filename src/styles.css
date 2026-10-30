@@ -2420,6 +2420,9 @@ html[data-tracksize="large"]{--lane:100px}
    Kolom setinggi workspace dan tidak menggulung sendiri; posisi vertikalnya digeser lewat top (position:relative) mengikuti gulir canvas. */
 .tracklist--pl{overflow:hidden}
 .tracklist--pl .headers{position:relative}
+/* kolom tidak menggulung lagi (overflow:hidden), jadi pojok kiri atas (tombol panel / titik tiga / layar penuh) dikunci absolut di y=0, sejajar dengan penggaris;
+   sticky + margin negatif di dalam kontainer overflow:hidden membuatnya turun setinggi penggaris */
+.tracklist--pl .tl-corner{position:absolute;top:0;left:0;right:0;margin-top:0}
 .tracklist--pl .trkcard-wrap{height:var(--pl-row);transition:none}
 /* ikon ukuran di menu: batang yang makin tinggi */
 .track-menu__sz{flex:none;width:16px;display:grid;place-items:center}
