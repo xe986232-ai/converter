@@ -8,7 +8,7 @@ import '@fontsource/plus-jakarta-sans/latin-600.css';
 import '@fontsource/plus-jakarta-sans/latin-700.css';
 import './no-context-menu';   // tutup menu klik-tahan / klik kanan bawaan browser
 import './no-zoom';   // kunci zoom halaman (pinch, Ctrl + roda, Ctrl + / -)
-import { playlist, audioFiles } from './playlist/boot';   // playlist canvas (menggantikan tampilan timeline lama)
+import { playlist, audioFiles, plNotesChanged } from './playlist/boot';   // playlist canvas (menggantikan tampilan timeline lama)
 import { openAudioUploadCard, trackAudioFiles } from './audio-upload-card';
 import { initEffectsPanel } from './effects-panel';
 import { initTrackMeters } from './track-meters';
@@ -511,7 +511,7 @@ const patKey = (prId, fxId, laneTrack) => !hasSynth(laneTrack) && fxRack.derizOw
 const patBase = id => id.split('@')[0];
 const copyPatNotes = (from, to, a, b) => { copyPianoRollNotes(from, to, a, b); for (const k of pianoRollExtraKeys(from)) copyPianoRollNotes(k, to + k.slice(from.length), a, b); };
 const trimPatNotes = (id, beat) => { trimPianoRollNotes(id, beat); for (const k of pianoRollExtraKeys(id)) trimPianoRollNotes(k, beat); };
-setPianoRollChangeHandler(id => { const el = lanesEl.querySelector('.pattern[data-pr-id="' + patBase(id) + '"]'); if (el) renderPatNotes(el); });
+setPianoRollChangeHandler(id => { if (plNotesChanged(id)) return; const el = lanesEl.querySelector('.pattern[data-pr-id="' + patBase(id) + '"]'); if (el) renderPatNotes(el); });
 document.addEventListener('prbarschange', () => lanesEl.querySelectorAll('.pattern[data-pr-id]').forEach(renderPatNotes));   // Pengaturan > Grid Piano Roll diganti: note mini di semua pattern ikut lebar grid yang baru
 function createPattern(lane, sl, ci) {   // ci = {clip, off}: pattern ini adalah audio clip
   const cont = document.querySelector('.trkcard-wrap[data-track="' + lane.dataset.track + '"]');
@@ -2269,7 +2269,7 @@ function showPlayhead() {   // geser timeline kalau playhead keluar dari layar
   if (x < l + off + 8 || x > l + w - 24) wsEl.scrollTo({left: Math.max(0, x - w * .3), behavior: REDUCE ? 'instant' : 'smooth'});
 }
 // Tap / seret penggaris piano roll: playhead pindah ke posisi itu (relatif awal pattern yang dibuka)
-setPianoRollTogglePlayHandler(() => togglePlay());   // tombol Play di atas playhead piano roll
+setPianoRollTogglePlayHandler(() => playlist.togglePlay());   // tombol Play di atas playhead piano roll
 // Mengetuk / menyeret penggaris (piano roll maupun playlist) saat Play = berhenti SAAT ITU JUGA lalu playhead pindah ke titik yang diketuk (tidak lanjut main).
 // Dipanggil sebelum posisi baru dihitung, karena pausePlay() menulis posBars dengan posisi yang sedang terdengar.
 function haltForRulerSeek() { if (playing) pausePlay(); }
