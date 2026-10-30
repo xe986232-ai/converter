@@ -8,7 +8,7 @@ import '@fontsource/plus-jakarta-sans/latin-600.css';
 import '@fontsource/plus-jakarta-sans/latin-700.css';
 import './no-context-menu';   // tutup menu klik-tahan / klik kanan bawaan browser
 import './no-zoom';   // kunci zoom halaman (pinch, Ctrl + roda, Ctrl + / -)
-import { playlist, audioFiles, plNotesChanged } from './playlist/boot';   // playlist canvas (menggantikan tampilan timeline lama)
+import { playlist, audioFiles, plNotesChanged, plugHooks } from './playlist/boot';   // playlist canvas (menggantikan tampilan timeline lama)
 import { openAudioUploadCard, trackAudioFiles } from './audio-upload-card';
 import { initEffectsPanel } from './effects-panel';
 import { initTrackMeters } from './track-meters';
@@ -1772,6 +1772,37 @@ const ICON_AUTO =   // Icon track "Automation": kurva dengan titik kontrol
 // kartu track Audio clip (id kartu) -> id track audio di playlist canvas; fileId unik untuk file yang di-upload
 const plAudioTrack = new Map<string, number>();
 let plFileSeq = 0;
+// ---- plugin DERIZ <-> playlist canvas ----
+// Track DERIZ di mixer punya baris instrumen di playlist. Clip di baris itu dibunyikan lewat sampler DERIZ track-nya (melewati fader + efek track),
+// dan piano roll yang dibuka dari clip itu mem-preview nada lewat DERIZ yang sama (prvTarget). Track tanpa DERIZ / tanpa audio: suara bawaan playlist.
+const plDerizTrack = new Map<string, number>();   // id kartu track DERIZ -> id track instrumen di playlist canvas
+const plMixerOf = (plId: number): string | undefined => { for (const [k, v] of plDerizTrack) if (v === plId) return k; return undefined; };
+let plClipTrack: Map<number, number> | null = null;   // id clip -> id track playlist (cache; dibuang tiap data playlist berubah)
+plugHooks.changed = () => { plClipTrack = null; };
+function plMixerOfClip(clipId: number): string | undefined {
+  let pt = plClipTrack?.get(clipId);
+  if (pt === undefined) { plClipTrack = new Map(playlist.getClipsInfo().map(c => [c.id, c.track])); pt = plClipTrack.get(clipId); }
+  return pt === undefined ? undefined : plMixerOf(pt);
+}
+plugHooks.playSample = (clipId, key, vel, when, dur, segs) => {
+  const mix = plMixerOfClip(clipId);
+  if (mix === undefined || !fxRack.hasDeriz(mix)) return null;
+  audio();
+  if (when == null || dur == null) {   // nada langsung (mis. ketuk nada): tahan sampai stop
+    const id = fxRack.derizOn(mix, key);
+    return { stop: () => fxRack.derizOff(id) };
+  }
+  fxRack.derizPlay(mix, key, when, dur, segs?.map(g => ({ when: when + g.off, to: g.key, dur: g.dur })), undefined, vel);
+  return { stop: () => { /* nada terjadwal berhenti sendiri; Stop memanggil derizStop (plugHooks.transport) */ }, start: when };
+};
+plugHooks.openClip = clip => {
+  const mix = plMixerOf(clip.track), fx = mix === undefined ? undefined : fxRack.derizIds(mix)[0];
+  prvTarget = mix !== undefined && fx !== undefined ? {track: mix, fx} : null;   // preview nada di piano roll ini lewat DERIZ track clip
+  if (fx === undefined) return undefined;
+  fxRack.derizWarm();   // siapkan sampler sebelum nada pertama
+  return fxRack.derizLabel(fx);
+};
+plugHooks.transport = playing => { if (playing) fxRack.derizWarm(); else fxRack.derizStop(); };
 function addTrack(t) {
   const id = ++trackSeq, cont = TRACK_TPL.cloneNode(true);
   cont.dataset.track = id; cont.dataset.ins = t.n; cont.classList.add('is-new');
@@ -1784,6 +1815,7 @@ function addTrack(t) {
   cont.querySelector('.trkcard__title-btn').title = name;
   if (t.n === 'Audio clip') cont.querySelector('.trkcard__inst .ico').innerHTML = ICON_AUDIO_CLIP;
   if (t.n === 'Audio clip') plAudioTrack.set(String(id), playlist.addTrack('audio', name, t.c));   // track audio yang sama muncul di playlist canvas
+  if (t.n === 'DERIZ') plDerizTrack.set(String(id), playlist.addTrack('instrument', name, t.c));   // track DERIZ: baris instrumen di playlist canvas (clip-nya dibunyikan lewat DERIZ)
   if (t.n === 'Automation') cont.querySelector('.trkcard__inst .ico').innerHTML = ICON_AUTO;   // track khusus Automation Clip (dibuat dari titik tiga di transport)
   cont.querySelector('input[type=range]').setAttribute('aria-label', 'Volume, ' + name);
   const lane = document.createElement('div');
